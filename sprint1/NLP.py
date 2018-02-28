@@ -1,5 +1,4 @@
 import nltk
-import unittest
 
 class UserIn:
     def __init__(self, search):
