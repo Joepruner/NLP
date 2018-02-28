@@ -12,7 +12,7 @@
         <body>
             <form method="post" action="http://www.randyconnolly.com/tests/process.php">
                 <fieldset>
-                    <label for="userInput">Ask your question:</label>
+                    <label>Ask your question:</label>
                     <input id="userInput" type="text" name="question">
                     <input type="submit" class="largeButton" name="submit" value="SUBMIT">
                 </fieldset>
