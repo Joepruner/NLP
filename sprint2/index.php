@@ -17,7 +17,9 @@
             </form>
         </body>
         <footer>
+            <span id="footnav">
             
+            </span>
         </footer>
     </body>
 </html>

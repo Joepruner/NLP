@@ -16,12 +16,16 @@ header{
     background-color: var(--primary);
     height: 4em;
     width: 100%;
-    
+    line-height: 4em;
 }
 h1{
     color: var(--backup);
     font-weight: lighter;
-    height: 100%;
     width: 20%;
     margin: auto;
+}
+
+/*=====FROM=====*/
+form{
+    
 }
