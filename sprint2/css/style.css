@@ -7,8 +7,10 @@
 
 /*=====DOC=====*/
 html, body{
+    height: 100%;
     margin: 0;
     font-family: Helvetica, sans-serif;
+    background-color: white;
 }
 
 /*=====HEADER=====*/
@@ -18,14 +20,98 @@ header{
     width: 100%;
     line-height: 4em;
 }
-h1{
+#nl2cqHead{   
     color: var(--backup);
+    text-align: center;
+    text-decoration: none;
+    font-size: 2em;
+    display: block;
     font-weight: lighter;
-    width: 20%;
-    margin: auto;
 }
 
 /*=====FROM=====*/
 form{
-    
+    height: calc(100% - 8em);
+    text-align: center;
+}
+fieldset{
+    width: 80%;
+    margin: auto;
+    padding: 10em 0 0 0;
+    border: none;
+}
+form label{
+    display: block;
+    margin: 0 auto 1em auto;
+    font-size: 3em;
+}
+form input{
+    margin: auto;
+    display: block;
+}
+#userInput{
+    border: solid 0.05em darkgray;
+    border-radius: 2em;
+    padding: 1% 5%;
+    font-size: 3em;
+    width: 90%;
+    margin: 0 auto 1em auto;
+    color: var(--primary);
+    transition: 0.4s ease-in-out;
+}
+#userInput:hover{
+    box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 8px 25px 0 rgba(0,0,0,0.19);
+}
+#userInput:focus{
+    border: solid 0.05em var(--primary);
+    background-color: var(--backup);
+    color: black;
+    outline: none;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 16px 50px 0 rgba(0,0,0,0.19);
+}
+.largeButton{
+    background-color: white;
+    border: solid 0.05em darkgray;
+    border-radius: 0.5em;
+    font-size: 2em;
+    padding: 0.3em 0.5em 0.25em 0.5em;
+    transition: 0.2s ease-in-out;
+}
+.largeButton:hover{
+    background-color: var(--backup);
+    border: solid 0.05em var(--primary);
+    box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 8px 25px 0 rgba(0,0,0,0.19);
+    cursor: pointer;
+    color: var(--primary);
+}
+.largeButton:active{
+    outline: none;
+    box-shadow: 0 3px 4px 0 rgba(0,0,0,0.24), 0 4px 12.5px 0 rgba(0,0,0,0.19);
+    cursor: pointer;
+    background-color: var(--secondary);
+    border: solid 0.05em darkgray;
+    color: black;
+}
+
+
+/*=====FOOTER=====*/
+footer{
+    background-color: var(--secondary);
+    height: 4em;
+    line-height: 4em;
+    padding: 0 1em 0 1em;
+}
+footer span{
+    color: var(--backup);
+    font-weight: bold;
+}
+footer nav{
+    float: right;
+    color: var(--backup);
+    font-weight: bold;
+}
+footer nav a{
+    text-decoration: none;
+    color: var(--backup);
+    font-weight: bold;
 }
