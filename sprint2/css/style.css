@@ -1,0 +1,24 @@
+/*=====VARIABLES=====*/
+:root{ 
+	--primary: #07889b; 
+	--secondary: #e69f2c;
+	--backup: #dce4e5;
+}
+
+/*=====DOC=====*/
+html, body{
+    margin: 0;
+    font-family: Helvetica, sans-serif;
+}
+
+header{
+    background-color: var(--primary);
+    height: 4em;
+    width: 100%;
+}
+h1{
+    color: var(--backup);
+    line-height: 100%;
+    width: 20%;
+    margin: auto;
+}
