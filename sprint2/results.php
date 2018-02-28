@@ -11,12 +11,14 @@
         </header>
         
         <footer>
+            <span>The Phonetics</span>
             <nav>
                 <a href="about.html">About</a>
+                <em> | </em>
                 <a href="contact.html">Contact</a>
+                <em> | </em>
                 <a href="documentation.html">Documentation</a>
             </nav>
-            <span>The Phonetics</span>
         </footer>
     </body>
 </html>
