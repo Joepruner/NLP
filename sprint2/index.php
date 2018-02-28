@@ -7,19 +7,26 @@
     </head>
     <body>
         <header>
-            <h1>NL2CQ</h1>
+            <a id="nl2cqHead" href="index.php">NL2CQ</a>
         </header>
         <body>
             <form>
-                <label for="userInput">Ask your question:</label>
-                <input id="userInput" type="text" name="question">
-                <input type="submit" name="submit">
+                <fieldset>
+                    <label for="userInput">Ask your question:</label>
+                    <input id="userInput" type="text" name="question">
+                    <input type="submit" class="largeButton" name="submit" value="SUBMIT">
+                </fieldset>
             </form>
         </body>
         <footer>
-            <span id="footnav">
-            
-            </span>
+            <span>The Phonetics</span>
+            <nav>
+                <a href="about.html">About</a>
+                <em> | </em>
+                <a href="contact.html">Contact</a>
+                <em> | </em>
+                <a href="documentation.html">Documentation</a>
+            </nav>
         </footer>
     </body>
 </html>
