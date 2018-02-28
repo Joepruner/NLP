@@ -11,14 +11,18 @@ html, body{
     font-family: Helvetica, sans-serif;
 }
 
+/*=====HEADER=====*/
 header{
     background-color: var(--primary);
     height: 4em;
     width: 100%;
+    
 }
 h1{
     color: var(--backup);
-    line-height: 100%;
+    font-weight: lighter;
+    height: 100%;
     width: 20%;
     margin: auto;
+    vertical-align: middle;
 }
