@@ -5,7 +5,11 @@ from nltk.corpus import stopwords
 import sys
 
 #string = "Show me the names of actors in the movie with title ""Cloud Atlas"""
-string = sys.argv[1]
+sysin = sys.argv[1:]
+
+string = " ".join(sysin)
+
+# string  = "my name is david"
 tag = "VB"
 
 
@@ -13,11 +17,11 @@ def showTags (string):
     word = nltk.word_tokenize(string)
     print nltk.pos_tag(word)
 
-string2 = "Show me the title of all the movies that ""Halle Berry"" acted in"
+#string2 = "Show me the title of all the movies that ""Halle Berry"" acted in"
 
 def output (string):
 
-    print string
+    print string + "<br>"
     print
 
     def findSpeechPart (string, tag):
@@ -39,38 +43,38 @@ def output (string):
 
     NNP = findSpeechPart(string, "NNP")
 
-    print "" \
-          "These are all of the Plural Nouns" \
+    print "<br>" \
+          "These are all of the Plural Nouns <br>" \
           "<br>"
-    print NNS
-    print "" \
-          "These are all of the Singular Nouns" \
+    print (NNS)
+    print "<br>" \
+          "These are all of the Singular Nouns <br>" \
           "<br>"
-    print NN
-    print "" \
-          "These are all of the Adjectives" \
-          ""
-    print JJ
-    print "" \
-          "These are all of the Singular Proper Nouns" \
-          ""
-    print NNP
+    print (NN)
+    print "<br>" \
+          "These are all of the Adjectives <br>" \
+          "<br>"
+    print (JJ)
+    print "<br>" \
+          "These are all of the Singular Proper Nouns <br>" \
+          "<br>"
+    print (NNP)
 
-output(string)
+showTags(string)
 
-print
+# print
 
-output(string2)
-
-print
-
-output("who acted in movie with title ""Cloud Atlas""")
-
-print
-
-output("who acted in movie ""Cloud Atlas""")
-
-
-showTags("who acted in movie ""Cloud Atlas"""
-         )
+# output(string2)
+#
+# print
+#
+# output("who acted in movie with title ""Cloud Atlas""")
+#
+# print
+#
+# output("who acted in movie ""Cloud Atlas""")
+#
+#
+# showTags("who acted in movie ""Cloud Atlas"""
+#          )
 

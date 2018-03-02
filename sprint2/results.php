@@ -6,14 +6,16 @@
     </head>
     <body>
         <header>
-            <h1>NL2CQ</h1>
+            <a href="index.php"><h1>NL2CQ</h1></a>
         </header>
 
         <?php
 
         $question = $_GET["question"];
 
-        echo  shell_exec("python index.py ".$question);
+        $result = shell_exec("python index.py ". $question);
+
+        echo  $result
 
         ?>
 
