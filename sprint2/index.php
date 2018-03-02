@@ -10,7 +10,7 @@
             <h1>NL2CQ</h1>
         </header>
         <body>
-            <form>
+            <form action="results.php" method="get">
                 <label for="userInput">Ask your question:</label>
                 <input id="userInput" type="text" name="question">
                 <input type="submit" name="submit">
@@ -18,7 +18,6 @@
         </body>
         <footer>
             <span id="footnav">
-            
             </span>
         </footer>
     </body>
