@@ -16,7 +16,6 @@
         $result = shell_exec("python index.py ". $question);
 
         echo  $result
-
         ?>
 
         <footer>
