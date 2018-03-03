@@ -19,6 +19,7 @@ header{
     height: 4em;
     width: 100%;
     line-height: 4em;
+    margin-bottom: 2em;
 }
 #nl2cqHead{   
     color: var(--backup);
@@ -29,15 +30,21 @@ header{
     font-weight: lighter;
 }
 
+/*======LOGO======*/
+.mainLogo{
+    height: 6em;
+    width: 100%;
+}
+
 /*=====FROM=====*/
 form{
-    height: calc(100% - 8em);
+    height: calc(100% - 16.25em);
     text-align: center;
 }
 fieldset{
     width: 80%;
     margin: auto;
-    padding: 10em 0 0 0;
+    padding: 2em 0 0 0;
     border: none;
 }
 form label{
@@ -92,7 +99,6 @@ form input{
     border: solid 0.05em darkgray;
     color: black;
 }
-
 
 /*=====FOOTER=====*/
 footer{
