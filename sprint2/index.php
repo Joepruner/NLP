@@ -10,7 +10,7 @@
              <a id="nl2cqHead" href="index.php">NL2CQ</a>
          </header>
          <body>
-             <form method="post" action="http://www.randyconnolly.com/tests/process.php">
+             <form action="results.php" method="get">
                  <fieldset>
                     <label>Ask your question:</label>
                     <input id="userInput" type="text" name="question">
