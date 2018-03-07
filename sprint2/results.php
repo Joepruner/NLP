@@ -7,7 +7,6 @@
      </head>
      <body>
         <header>
-            <a href="index.php"><h1>NL2CQ</h1></a>
             <a id="nl2cqHead" href="index.php">NL2CQ</a>
         </header>
 
