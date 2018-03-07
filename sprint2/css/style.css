@@ -145,3 +145,14 @@ footer nav a{
     color: var(--backup);
     font-weight: bold;
 }
+
+/*===OUTPUT===*/
+
+#resultHeader{
+    text-align: center;
+}
+
+
+#output {
+    text-align: center;
+}
