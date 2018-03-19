@@ -1,23 +1,23 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>NL2CQ - Home</title>
-        <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css" href="css/style.css">
-    </head>
-    <body>
+ <!DOCTYPE html>
+ <html>
+     <head>
+         <title>NL2CQ - Home</title>
+         <meta charset="utf-8">
+         <link rel="stylesheet" type="text/css" href="css/style.css">
+     </head>
+     <body>
         <header>
-            <a id="nl2cqHead" href="index.php">NL2CQ</a>
+             <a id="nl2cqHead" href="index.php">NL2CQ</a>
         </header>
-        <body>
-            <form method="post" action="http://www.randyconnolly.com/tests/process.php">
-                <fieldset>
-                    <label>Ask your question:</label>
-                    <input id="userInput" type="text" name="question">
-                    <input type="submit" class="largeButton" name="submit" value="SUBMIT">
-                </fieldset>
-            </form>
-        </body>
+        <img class="mainLogo" src="res/NL2CQ%20Logo.svg">
+        <form action="results.php" method="get">
+            <fieldset>
+                <label>Ask your question:</label>
+                <input id="userInput" type="text" name="question">
+                <input type="submit" class="largeButton" name="submit" value="SUBMIT">
+            </fieldset>
+        </form>
+    
         <footer>
             <span>The Phonetics</span>
             <nav>

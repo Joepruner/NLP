@@ -19,6 +19,7 @@ header{
     height: 4em;
     width: 100%;
     line-height: 4em;
+    margin-bottom: 2em;
 }
 #nl2cqHead{   
     color: var(--backup);
@@ -29,15 +30,21 @@ header{
     font-weight: lighter;
 }
 
+/*======LOGO======*/
+.mainLogo{
+    height: 6em;
+    width: 100%;
+}
+
 /*=====FROM=====*/
 form{
-    height: calc(100% - 8em);
+    height: calc(100% - 16.25em);
     text-align: center;
 }
 fieldset{
     width: 80%;
     margin: auto;
-    padding: 10em 0 0 0;
+    padding: 2em 0 0 0;
     border: none;
 }
 form label{
@@ -93,6 +100,29 @@ form input{
     color: black;
 }
 
+/*=====DEVELOPERS=====*/
+.developer{
+    width: 80%;
+    height: 15em;
+    margin: 0 auto 2em auto;
+    box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 8px 25px 0 rgba(0,0,0,0.19);
+    padding: 1em;
+    background-color: var(--backup);
+    overflow: hidden;
+}
+.developerImg{
+    margin: 0 1em 0 1em;
+    height: 15em;
+    width: 15em;
+    float: left;
+    border-radius: 15em;
+    border: solid 0.02em black;
+    transition: 0.2s ease-in-out;
+}
+.developer:hover .developerImg{
+    border-radius: 1em;
+    box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 8px 25px 0 rgba(0,0,0,0.19);
+}
 
 /*=====FOOTER=====*/
 footer{
@@ -114,4 +144,15 @@ footer nav a{
     text-decoration: none;
     color: var(--backup);
     font-weight: bold;
+}
+
+/*===OUTPUT===*/
+
+#resultHeader{
+    text-align: center;
+}
+
+
+#output {
+    text-align: center;
 }
