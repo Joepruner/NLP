@@ -22,6 +22,7 @@ import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize, PunktSentenceTokenizer
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
+from nltk.chunk import RegexpParser
 import sys
 
 class Tokenize():
@@ -61,7 +62,65 @@ class Tokenize():
         self.wordsTagged = nltk.pos_tag(self.wordsFiltered)
         """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
         #self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
-        
+
+"""
+Method name: numberStartsWith
+Author: Kevin Feddema
+Date created: 19/03/2018
+Date last modified: 19/03/2018
+Python version: Anaconda 3.6
+    
+The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names 
+begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
+common when asking for the number of names that begin with a letter according to out NLP survey results
+"""
+
+def numberStartsWith(tagMap):
+    query5 = "" #the final query that is returned after processing
+    countIndicator = 0 #countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates the need to return count and 0 if not
+
+    """Determine if there is a count indicator in the user's input"""
+    for elem in tagMap:
+        if elem[0] == 'number':
+            countIndicator = 1
+
+    chunkSequence = '''
+                    Chunk:
+                    {<WRB>+ <JJ>+}'''
+    NPChunker = nltk.RegexpParser(chunkSequence)
+    chunks = NPChunker.parse(tagMap)
+    for n in chunks:
+        if isinstance(n, nltk.tree.Tree):
+            if n.label() == 'Chunk':
+                howMany = n
+                countIndicator = 1
+
+    """If a countIndicator is not found in the question, the question cannot be handled by this method, return -1"""
+    if countIndicator == 0:
+        return -1
+
+    """Determine the attribute that the user wants the count of. And determine whether the user wants to know if the attribute contains, starts with, or ends with"""
+    attribute = ""
+    condition = ""
+    # NOTE: there are quite a few assumptions made here
+    for elem in tagMap:
+        if elem[1] == 'RB' or elem[1] == 'NNS':
+            attribute = elem[0]
+        if elem[0] == 'start' or elem[0] == 'starts' or elem[0] == 'begin' or elem[1] == 'begins':
+            condition = 'STARTS WITH'
+        if elem[0] == 'ends':
+            condition = "ENDS WITH"
+        if elem[0] == 'contain' or elem[0] == 'contains':
+            condition == "CONTAINS"
+
+    """Determine the value that the question filters by, ie. J, K, A, N, etc"""
+    value = ""
+    for elem in tagMap:
+        if elem[1] == 'NNP':
+            value = elem[0]
+
+    query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
+    return query5
 """
 The following code allows for input. 
 When running from website use:
@@ -79,7 +138,8 @@ string = " ".join(sysin)
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
-print(t.wordsTagged)
+tagMap = t.wordsTagged
+print(numberStartsWith(tagMap))
 
 
 """
