@@ -5,7 +5,7 @@ This program tokenizes and assigns Stanford CoreNLP tags to a sentence. Input ca
 File name: Tokenize.py
 Author: Angie Pinchbeck
 Date created: 27/02/2018
-Date last modified: 10/03/2018
+Date last modified: 20/03/2018
 Python version: 3.5
 
 Much of this was based on a tutorial from:
@@ -31,6 +31,9 @@ class Tokenize():
     It first scrubs the sentence of "stop words", that is, words that are common and not of use to discovering overall meaning,
     and also has the ability to return only the roots of words, instead of the entire word.
 
+    Modifications:
+        20/03/2018  Fixed __init__ to tag words before scrubbing them
+
     Attributes:
         stopWords (String[]): The words that are considered "stop words" by the NLTK module; words that will be scrubbed.
             There are 179 stop words as of 10/03/2018.
@@ -49,17 +52,18 @@ class Tokenize():
 
     def __init__(self, data):
         self.words = word_tokenize(data)
-        self.wordsFiltered = []
-        for w in self.words:
-            if w not in self.stopWords:
+        self.wordsUnFiltered = nltk.pos_tag(self.words)
+        self.wordsTagged = []
+        for wt in self.wordsUnFiltered:
+            if wt[0] not in self.stopWords:
                 """
-                For stems of words instead of whole words, comment out the 
-                first line of this loop and comment in the second line:
-                    self.wordsFiltered.append(self.ps.stem(w))
+                For stems of words instead of whole words, comment out:
+                self.wordsFiltered.append(wt)
+                Then comment in:
+                self.wordsFiltered.append(self.ps.stem(w))
                 """
-                self.wordsFiltered.append(w)
-                #self.wordsFiltered.append(self.ps.stem(w))
-        self.wordsTagged = nltk.pos_tag(self.wordsFiltered)
+                self.wordsTagged.append(wt)
+                # self.wordsTagged.append(self.ps.stem(w))
         """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
         #self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
 
@@ -121,6 +125,7 @@ def numberStartsWith(tagMap):
 
     query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
     return query5
+
 """
 The following code allows for input. 
 When running from website use:
@@ -134,7 +139,7 @@ tokenization until "e" is entered.
 #print("Enter a sentence to tokenize (\"e\" to exit): ")
 sysin = sys.argv[1:]
 string = " ".join(sysin)
-#string = input()
+#string = "How many names start with J?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
