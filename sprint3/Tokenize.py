@@ -62,12 +62,9 @@ class Tokenize():
                 Then comment in:
                 self.wordsFiltered.append(self.ps.stem(w))
                 """
-                self.wordsFiltered.append(w)
+                self.wordsTagged.append(wt)
                 # self.wordsFiltered.append(self.ps.stem(w))
-        self.wordsTagged = nltk.pos_tag(self.wordsFiltered)
-        self.wordsTagged.append(wt)
-        # self.wordsTagged.append(self.ps.stem(w))
-
+        
     """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
     # self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
 
