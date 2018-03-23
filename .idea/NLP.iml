@@ -2,12 +2,12 @@
 <module type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="Python" name="Python">
-      <configuration sdkName="Python 2.7.10 (/System/Library/Frameworks/Python.framework/Versions/2.7/bin/python2.7)" />
+      <configuration sdkName="Python 3.6.4 virtualenv at ~/venv" />
     </facet>
   </component>
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.6 (venv)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.6.4 virtualenv at ~/venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="R User Library" level="project" />
     <orderEntry type="library" name="R Skeletons" level="application" />
