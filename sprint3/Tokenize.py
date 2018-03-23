@@ -141,9 +141,9 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 # print("Enter a sentence to tokenize (\"e\" to exit): ")
-#sysin = sys.argv[1:]
-#string = " ".join(sysin)
-string = "How many names start with J?"
+sysin = sys.argv[1:]
+string = " ".join(sysin)
+#string = "How many names start with J?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)

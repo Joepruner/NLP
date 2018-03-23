@@ -18,8 +18,10 @@
 ?>
         <h1 id="resultHeader">The current output is:</h1>
        <h2 id="output"><?=$result?></h2>
-
-        <p cl>NL2CQ V1.2 will be released soon... </p>
+        <div style="width: 100%;">
+            <a href="index.php" class="largeButton" style="margin-left: 37.5%">Ask another Question</a>
+        </div>
+        <p>NL2CQ V1.2 will be released soon... </p>
         <?php
         include "footer.html"
         ?>
