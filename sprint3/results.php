@@ -14,7 +14,7 @@
 
         $question = $_GET["question"];
 
-        $result = shell_exec("C:/Users/Kevin/Anaconda3/python.exe Tokenize.py ". $question);
+        $result = shell_exec("python Tokenize.py ". $question);
 ?>
         <h1 id="resultHeader">The current output is:</h1>
        <h2 id="output"><?=$result?></h2>

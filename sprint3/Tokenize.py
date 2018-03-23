@@ -19,11 +19,11 @@ As much of possible, we have used the Google style guide for Python:
 """
 
 import nltk
-from nltk.tokenize import sent_tokenize, word_tokenize, PunktSentenceTokenizer
+import sys
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
-from nltk.chunk import RegexpParser
-import sys
+from nltk.tokenize import word_tokenize
+
 
 class Tokenize():
     """
@@ -58,10 +58,11 @@ class Tokenize():
                     self.wordsFiltered.append(self.ps.stem(w))
                 """
                 self.wordsFiltered.append(w)
-                #self.wordsFiltered.append(self.ps.stem(w))
+                # self.wordsFiltered.append(self.ps.stem(w))
         self.wordsTagged = nltk.pos_tag(self.wordsFiltered)
         """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
-        #self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
+        # self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
+
 
 """
 Method name: numberStartsWith
@@ -75,9 +76,10 @@ begin with a J?" or "What is the number of people with a name starting with J?".
 common when asking for the number of names that begin with a letter according to out NLP survey results
 """
 
+
 def numberStartsWith(tagMap):
-    query5 = "" #the final query that is returned after processing
-    countIndicator = 0 #countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates the need to return count and 0 if not
+    query5 = ""  # the final query that is returned after processing
+    countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates the need to return count and 0 if not
 
     """Determine if there is a count indicator in the user's input"""
     for elem in tagMap:
@@ -121,6 +123,8 @@ def numberStartsWith(tagMap):
 
     query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
     return query5
+
+
 """
 The following code allows for input. 
 When running from website use:
@@ -131,7 +135,7 @@ When running from console use:
 For testing purposes, a while-loop is included at the bottom (commented out) that will allow for continual input and 
 tokenization until "e" is entered. 
 """
-#print("Enter a sentence to tokenize (\"e\" to exit): ")
+# print("Enter a sentence to tokenize (\"e\" to exit): ")
 sysin = sys.argv[1:]
 string = " ".join(sysin)
 #string = input()
@@ -140,7 +144,6 @@ string = " ".join(sysin)
 t = Tokenize(string)
 tagMap = t.wordsTagged
 print(numberStartsWith(tagMap))
-
 
 """
 while (data != 'e'):
@@ -153,4 +156,3 @@ while (data != 'e'):
     data = input()
 
 """
-
