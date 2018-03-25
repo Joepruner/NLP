@@ -1,7 +1,10 @@
 <component name="libraryTable">
   <library name="R User Library">
     <CLASSES />
+<<<<<<< HEAD
     <JAVADOC />
+=======
+>>>>>>> b608969db2d72ca7a7a2bd8902c00c4a074c84cb
     <SOURCES />
   </library>
 </component>
