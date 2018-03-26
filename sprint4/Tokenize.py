@@ -5,7 +5,7 @@ This program tokenizes and assigns Stanford CoreNLP tags to a sentence. Input ca
 File name: Tokenize.py
 Author: Angie Pinchbeck, Joseph Pruner
 Date created: 27/02/2018
-Date last modified: 26/03/2018
+Date last modified: 27/03/2018
 Python version: 3.5
 
 Much of this was based on a tutorial from:
@@ -295,8 +295,7 @@ tokenization until "e" is entered.
 """
 
 sysin = sys.argv[1:]
-string = input()
-#string = " ".join(sysin)
+string = " ".join(sysin)
 #string = "What are the names of all the people?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
@@ -304,20 +303,21 @@ string = input()
 #string = "who are the outlaws"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
-#t = Tokenize(string)
-#tagMap = t.wordsTagged
+t = Tokenize(string)
+tagMap = t.wordsTagged
 #print(tagMap)
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
 #print(t.listAllOf(tagMap))
 #print(t.returnName(tagMap))
 
-#results = t.runTranslator(tagMap)
-#for item in results:
-#    print(item)
+results = t.runTranslator(tagMap)
+for item in results:
+    print(item)
 
 
-
+"""
+string = input()
 while (string != 'e'):
     t = Tokenize(string)
     tagMap = t.wordsTagged
@@ -326,5 +326,5 @@ while (string != 'e'):
         print(item)
     print("Enter a sentence to tokenize (\"e\" to exit): ")
     string = input()
-
+"""
 
