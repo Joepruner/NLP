@@ -67,6 +67,25 @@ class Tokenize():
                 tuple = (singularize(wt[0].lower()), wt[1])
                 self.wordsTagged.append(tuple)
 
+    """
+    Method name: runTranslator()
+    Author: Angie Pinchbeck
+    Date created: 26/03/2018
+    Date last modified: 26/03/2018
+    Python version: Python 3.5
+    
+    This is a method that will run an input tagMap through all the other translation methods, and then return a list
+    of all the queries that are output.
+    """
+    def runTranslator(self, tagMap):
+        results = []
+        if self.matchLabelAndProperty(tagMap) != -1:
+            results.append(self.matchLabelAndProperty(tagMap))
+        if self.numberStartsWith(tagMap) != -1:
+            results.append(self.numberStartsWith(tagMap))
+        if self.listAllOf(tagMap) != -1:
+            results.append(self.listAllOf(tagMap))
+        return results
 
     """
     Method name: matchLabelAndProperty
@@ -75,7 +94,6 @@ class Tokenize():
     Date last modified: 26/03/2018
     Python version: Python 3.5
     """
-
     def matchLabelAndProperty(self, tagMap):
         nounCount = 0
         for item in tagMap:
@@ -226,7 +244,6 @@ class Tokenize():
         biGrams = nltk.bigrams(tagMap)
 
         for bi in biGrams:
-            print(bi)
             if (bi[0][1] == 'PDT' or bi[0][1] == 'DT') and \
                     (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
                         1] == 'JJ'):
@@ -264,10 +281,12 @@ string = " ".join(sysin)
 t = Tokenize(string)
 tagMap = t.wordsTagged
 #print(tagMap)
-print(t.matchLabelAndProperty(tagMap))
-print(t.numberStartsWith(tagMap))
-print(t.listAllOf(tagMap))
-
+#print(t.matchLabelAndProperty(tagMap))
+#print(t.numberStartsWith(tagMap))
+#print(t.listAllOf(tagMap))
+results = t.runTranslator(tagMap)
+for item in results:
+    print(item)
 
 """
 while (data != 'e'):
