@@ -5,7 +5,7 @@ class TestTokenize(unittest.TestCase):
 
     query1_1 = "MATCH (p :Person) RETURN p.name"
     query1_2 = "MATCH (m :Movie) RETURN m.title"
-    query5_1 = "MATCH (n) WHERE n names STARTS WITH \"J\" RETURN COUNT (n names)"
+    query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
     """
     Test that stopWords from Python's NLTK is working.
@@ -29,7 +29,7 @@ class TestTokenize(unittest.TestCase):
     def test_keptStopWords(self):
         string = "How do you do"
         t = Tokenize(string)
-        self.assertEqual(t.wordsTagged, [('How', 'WRB')]);
+        self.assertEqual(t.wordsTagged, [('how', 'WRB')]);
 
     """
     Test matchLabelAndProperty with query1_1, defined above.
@@ -67,8 +67,7 @@ class TestTokenize(unittest.TestCase):
     """
     Test matchLabelAndProperty with query1_2, defined above.
     """
-
-    def test1_matchLabelAndProperty(self):
+    def test5_matchLabelAndProperty(self):
         string = "What are all the movie titles?"
         t = Tokenize(string)
         self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_2)

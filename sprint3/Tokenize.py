@@ -58,20 +58,13 @@ class Tokenize():
     ps = PorterStemmer()
 
     def __init__(self, data):
-        self.words = word_tokenize(data)
-        self.wordStems = []
-        for word in self.words:
-            #self.wordStems.append(word)
-            self.wordStems.append(singularize(word.lower()))
-        self.wordsUnFiltered = nltk.pos_tag(self.wordStems)
+        self.words = word_tokenize(data.lower())
+        self.wordsUnFiltered = nltk.pos_tag(self.words)
         self.wordsTagged = []
         for wt in self.wordsUnFiltered:
-            if wt[0].lower() not in self.stopWords:
-                if wt[1] == 'NNS':
-                    tuple = (singularize(wt[0]), 'NN')
-                    self.wordsTagged.append(tuple)
-                else:
-                    self.wordsTagged.append(wt)
+            if wt[0] not in self.stopWords:
+                tuple = (singularize(wt[0].lower()), wt[1])
+                self.wordsTagged.append(tuple)
 
 
     """
@@ -83,17 +76,15 @@ class Tokenize():
     """
 
     def matchLabelAndProperty(self, tagMap):
-        print(tagMap)
         nounCount = 0
         for item in tagMap:
-            if item[1] == 'NN':
+            if item[1] == 'NN' or item[1] == 'NNS':
                 nounCount += 1
         if nounCount < 2:
             return -1
 
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
         # the need to return count and 0 if not
-
         """Determine if there is a count indicator in the user's input"""
         for elem in tagMap:
             if elem[0] == 'number':
@@ -114,20 +105,41 @@ class Tokenize():
         Based on position of the word 'all', work out whether the label will appear in the tagMap before or 
         after the properties
         """
+        flagAllFirst = False
+        for item in tagMap:
+            if item[1] == 'PDT':
+                flagAllFirst = True
+                break
+            elif item[1] == 'NNS':
+                break
 
         nounCount = 0
-        for item in tagMap[::-1]:
-            if item[1] == 'NN' and nounCount == 0:
-                nodeName = item[0][0]
-                label = item[0].capitalize()
-                nounCount += 1
-                #print("Label: " + label)
-            elif item[1] == 'NN':
-                prop = item[0]
-                nounCount += 1
-                #print("Property: " + prop)
+        if not flagAllFirst:
+            for item in tagMap[::-1]:
+                if (item[1] == 'NN' or item[1] == 'NNS') and nounCount == 0:
+                    nodeName = item[0][0]
+                    label = item[0].capitalize()
+                    nounCount += 1
+                    #print("Label: " + label)
+                elif (item[1] == 'NN' or item[1] == 'NNS'):
+                    prop = item[0]
+                    nounCount += 1
+                    #print("Property: " + prop)
+        else:
+            for item in tagMap:
+                if (item[1] == 'NN' or item[1] == 'NNS') and nounCount == 0:
+                    nodeName = item[0][0]
+                    label = item[0].capitalize()
+                    nounCount += 1
+                    #print("Label: " + label)
+                elif (item[1] == 'NN' or item[1] == 'NNS'):
+                    prop = item[0]
+                    nounCount += 1
+                    #print("Property: " + prop)
+
         query1 = "MATCH (" + nodeName + " :" + label + ") RETURN " + nodeName + "." + prop
         return query1
+
 
     """
     Method name: numberStartsWith
@@ -140,8 +152,6 @@ class Tokenize():
     begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
     common when asking for the number of names that begin with a letter according to out NLP survey results
     """
-
-
     def numberStartsWith(self, tagMap):
         query5 = ""  # the final query that is returned after processing
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
@@ -185,10 +195,10 @@ class Tokenize():
         """Determine the value that the question filters by, ie. J, K, A, N, etc"""
         value = ""
         for elem in tagMap:
-            if elem[1] == 'NNP':
-                value = elem[0]
+            if elem[1] == 'NN':
+                value = elem[0].capitalize()
 
-        query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
+        query5 = "MATCH (n) WHERE n." + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n." + attribute + ")"
         return query5
 
 
@@ -204,15 +214,16 @@ tokenization until "e" is entered.
 """
 # print("Enter a sentence to tokenize (\"e\" to exit): ")
 sysin = sys.argv[1:]
-#string = " ".join(sysin)
-string = "What are all the movie titles?"
+string = " ".join(sysin)
+#string = "What are the names of all the people?"
 #string = "How many names start with J?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
-
+print(tagMap)
 print(t.matchLabelAndProperty(tagMap))
+#print(t.numberStartsWith(tagMap))
 
 
 """
