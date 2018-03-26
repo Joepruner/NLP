@@ -19,7 +19,6 @@ As much of possible, we have used the Google style guide for Python:
 """
 
 import nltk
-import sys
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
@@ -68,7 +67,7 @@ class Tokenize():
                 """
                 self.wordsTagged.append(wt)
                 # self.wordsFiltered.append(self.ps.stem(w))
-        
+
     """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
     # self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
 
@@ -84,7 +83,6 @@ class Tokenize():
     begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
     common when asking for the number of names that begin with a letter according to out NLP survey results
     """
-
 
     def numberStartsWith(self, tagMap):
         query5 = ""  # the final query that is returned after processing
@@ -133,6 +131,34 @@ class Tokenize():
         query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
         return query5
 
+    def returnName(self, tagMap):
+        """Creating a list of possible labels and attributes
+        that may be in the tagMap"""
+        atrList = {"name": "name", "names": "name"}
+        labelList = {"outlaws": "outlaw", "outlaw": "outlaw"}
+        preLabelList = {"outlaw", "name"}
+        label = ""
+        attribute = ""
+        preLabel = ""
+
+        """Looping through the tagMap"""
+        for elem in tagMap:
+            word = str(elem[0]).lower() #makes the entire word lower case so is easier to work with
+            if (word == "who" and elem[1] == "WP") or word in atrList.keys():
+                attribute = "name"
+            if word in labelList.keys():
+                label = "Outlaw"
+            if label in preLabelList or attribute in preLabelList:
+                preLabel = "Person"
+
+        """If any of the following variables are empty then Return 2"""
+        if attribute == "" or label == "" or preLabel == "":
+            return -2
+        else:
+            output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
+
+        return output
+
 
 """
 The following code allows for input. 
@@ -145,16 +171,37 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 # print("Enter a sentence to tokenize (\"e\" to exit): ")
-sysin = sys.argv[1:]
-string = " ".join(sysin)
-#string = "How many names start with J?"
+# sysin = sys.argv[1:]
+# string = " ".join(sysin)
+string = "what are the outlaw's names"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
+print (string)
 t = Tokenize(string)
 tagMap = t.wordsTagged
-#print(t.wordsTagged)
-print(t.numberStartsWith(tagMap))
+print(t.wordsTagged)
+print (t.wordsUnFiltered)
+print (t.returnName(tagMap))
+# print(t.numberStartsWith(tagMap))
 
+print
+
+string = "what are the names of the outlaws"
+print (string)
+t = Tokenize(string)
+tagMap = t.wordsTagged
+print(t.wordsTagged)
+print (t.wordsUnFiltered)
+print (t.returnName(tagMap))
+print
+
+string = "who are the outlaws"
+print (string)
+t = Tokenize(string)
+tagMap = t.wordsTagged
+print(t.wordsTagged)
+print (t.wordsUnFiltered)
+print (t.returnName(t.wordsUnFiltered))
 
 """
 while (data != 'e'):
