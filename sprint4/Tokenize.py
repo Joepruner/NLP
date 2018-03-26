@@ -37,6 +37,8 @@ class Tokenize():
         25/03/2018  Moved numberStartsWith() to be inside the Tokenize class
         26/03/2018  Expanded the kept stop words; added singularize method and removed PorterStemmer
         27/03/2018  Added the initDatabaseDictionaries() method to initialize Label, Relationships, etc.
+                    Added equalsIgnoreCase() method to compare two strings case-insensitively.
+                    Expanded kept stop words: now include "each".
 
     Attributes:
         keptStopWords(String[]): A list of words that we don't want to have scrubbed from input, even though
@@ -58,7 +60,7 @@ class Tokenize():
 
     """
     
-    keptStopWords = ["how", "all", "with", "have", "who", "and", "are", "is"]
+    keptStopWords = ["how", "all", "with", "have", "who", "and", "are", "is", "each"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     labels = []
     relationships = []
@@ -138,8 +140,8 @@ class Tokenize():
         :return: A list of all the Cypher queries that have been returned.
         """
         results = []
-        if self.matchLabelAndProperty(tagMap) != -1:
-            results.append(self.matchLabelAndProperty(tagMap))
+        if self.match_label_and_property(tagMap) != -1:
+            results.append(self.match_label_and_property(tagMap))
         if self.numberStartsWith(tagMap) != -1:
             results.append(self.numberStartsWith(tagMap))
         if self.listAllOf(tagMap) != -1:
@@ -148,7 +150,7 @@ class Tokenize():
             results.append(self.returnName(tagMap))
         return results
 
-    def matchLabelAndProperty(self, tagMap):
+    def match_label_and_property(self, tagMap):
         """
         Author: Angie Pinchbeck, Kevin Feddema (where indicated)
         Date created: 25/03/2018
@@ -158,12 +160,26 @@ class Tokenize():
         :return: A Cypher query as a string if appropriate; else, -1.
         """
 
+        """
+        keywords: A list of words that indicate that the user wants an identifying quality of a Label returned.
+        NOTE:
+            This operates under the assumption that the database has been designed in such a way that the first
+            property listed under any node is the "defining quality". For example, 'name' is usually the first
+            thing listed for any kind of person, or 'title' is the first thing listed for a movie/book. This is 
+            simply human nature--we tend to write the thing we believe to be the most important, first. 
+            However, it will obviously not work if the database has been designed differently.
+            This is a section of the program where some reinforcement machine learning could come in handy. 
+        """
+        keywords = ["who", "every", "each", "all"]
+
         nounTags = ["NN", "NNS", "NNP", "NNPS"]
 
         """ Be sure there are at least two nouns to work with """
         nounCount = 0
         for item in tagMap:
             if item[1] in nounTags:
+                nounCount += 1
+            elif item[0] in keywords:
                 nounCount += 1
         if nounCount < 2:
             return -1
@@ -208,53 +224,34 @@ class Tokenize():
                     labelNouns.append(n)
         """
         Check that there is only 1 "label" noun. If otherwise, this method should not handle it, return -1.
+        If it only has one, assign that one to "label".
         """
         if len(labelNouns) != 1:
             return -1
+        else:
+            label = labelNouns[0].capitalize()
 
         """
         Populate a list of the nouns that are properties.
         """
         propertyNouns = []
+        for n in nouns:
+            for item in self.labelProperties[label.capitalize()]:
+                if self.equalsIgnoreCase(n, item):
+                    propertyNouns.append(n)
 
+        #print(self.labelProperties[label.capitalize()])
 
         """
-        Based on position of the word 'all', work out whether the label will appear in the tagMap before or 
-        after the properties
+        Build the final query.
         """
-        flagAllFirst = False
-        for item in tagMap:
-            if item[1] == 'PDT':
-                flagAllFirst = True
-                break
-            elif item[1] == 'NNS':
-                break
+        prop = "n." + propertyNouns[0]
+        if len(propertyNouns) > 1:
+            for idx, pn in enumerate(propertyNouns):
+                if idx != 0:
+                    prop += ", " "n." + pn
 
-        nounCount = 0
-        if not flagAllFirst:
-            for item in tagMap[::-1]:
-                if (item[1] == 'NN' or item[1] == 'NNS') and nounCount == 0:
-                    nodeName = item[0][0]
-                    label = item[0].capitalize()
-                    nounCount += 1
-                    #print("Label: " + label)
-                elif (item[1] == 'NN' or item[1] == 'NNS'):
-                    prop = item[0]
-                    nounCount += 1
-                    #print("Property: " + prop)
-        else:
-            for item in tagMap:
-                if (item[1] == 'NN' or item[1] == 'NNS') and nounCount == 0:
-                    nodeName = item[0][0]
-                    label = item[0].capitalize()
-                    nounCount += 1
-                    #print("Label: " + label)
-                elif (item[1] == 'NN' or item[1] == 'NNS'):
-                    prop = item[0]
-                    nounCount += 1
-                    #print("Property: " + prop)
-
-        query1 = "MATCH (" + nodeName + " :" + label + ") RETURN " + nodeName + "." + prop
+        query1 = "MATCH (n :" + label + ") RETURN " + prop
         return query1
 
 
@@ -410,7 +407,8 @@ tokenization until "e" is entered.
 
 sysin = sys.argv[1:]
 string = " ".join(sysin)
-#string = "What are the names of all the people?"
+#string = "Who are the outlaws and what are the bounties on them?"
+#string = "What are the species of every the animals?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
 #string = "what are the names of the outlaws"
@@ -419,7 +417,7 @@ string = " ".join(sysin)
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
-#print(tagMap)
+# print(tagMap)
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
 #print(t.listAllOf(tagMap))
