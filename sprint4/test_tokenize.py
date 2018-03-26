@@ -4,7 +4,7 @@ from Tokenize import Tokenize
 class TestTokenize(unittest.TestCase):
 
     query1_1 = "MATCH (p :Person) RETURN p.name"
-    query1_2 = "MATCH (m :Movie) RETURN m.title"
+    query1_2 = "MATCH (o :Outlaw) RETURN o.name, o.bounty"
     query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
     """
@@ -13,7 +13,7 @@ class TestTokenize(unittest.TestCase):
     def test_stopWords(self):
         string = "from above into myself"
         t = Tokenize(string)
-        self.assertEqual(t.wordsTagged, []);
+        self.assertEqual(t.wordsTagged, [])
 
     """
     Test that stopWords is working even though the input has capital letters. 
@@ -58,7 +58,6 @@ class TestTokenize(unittest.TestCase):
     """
     Test matchLabelAndProperty with a "how many" question; should return -1.
     """
-
     def test4_matchLabelAndProperty(self):
         string = "How many names start with J?"
         t = Tokenize(string)
@@ -68,7 +67,16 @@ class TestTokenize(unittest.TestCase):
     Test matchLabelAndProperty with query1_2, defined above.
     """
     def test5_matchLabelAndProperty(self):
-        string = "What are all the movie titles?"
+        string = "What are the names and bounties of the outlaws?"
+        t = Tokenize(string)
+        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_2)
+
+    """
+    Test matchLabelAndProperty with query1_2, defined above.
+    """
+
+    def test6_matchLabelAndProperty(self):
+        string = "Who are the outlaws and what are the bounties on them?"
         t = Tokenize(string)
         self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_2)
 
