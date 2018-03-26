@@ -76,20 +76,20 @@ class Tokenize():
                 tuple = (singularize(wt[0]), wt[1])
                 self.wordsTagged.append(tuple)
 
-    """
-    Method name: initDatabaseDictionaries()
-    Author: Angie Pinchbeck
-    Date created: 27/03/2018
-    Date last modified: 27/03/2018
-    Python version: Python 3.5
-    
-    This method initializes the lists that are used for language comparison in the translation methods. 
-    For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with 
-    actual databases. The Cypher query needed to return that information from the database is listed
-    above each initialization so that, in the future, this method can be scaled to include the feature of 
-    linking to a real database. 
-    """
+
     def initDatabaseDictionaries(self):
+        """
+        Author: Angie Pinchbeck
+        Date created: 27/03/2018
+        Date last modified: 27/03/2018
+
+        This method initializes the lists that are used for language comparison in the translation methods.
+        For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with
+        actual databases. The Cypher query needed to return that information from the database is listed            above each initialization so that, in the future, this method can be scaled to include the feature of
+        linking to a real database.
+
+        :return: nothing
+        """
 
         # MATCH (n) RETURN distinct labels(n)
         self.labels = ["Person", "Animal", "Outlaw"]
@@ -110,17 +110,18 @@ class Tokenize():
 
 
 
-    """
-    Method name: runTranslator()
-    Author: Angie Pinchbeck
-    Date created: 26/03/2018
-    Date last modified: 26/03/2018
-    Python version: Python 3.5
-    
-    This is a method that will run an input tagMap through all the other translation methods, and then return a list
-    of all the queries that are output.
-    """
     def runTranslator(self, tagMap):
+        """
+        Author: Angie Pinchbeck
+        Date created: 26/03/2018
+        Date last modified: 26/03/2018
+
+        This is a method that will run an input tagMap through all the other translation methods, and then return a list
+        of all the queries that are output.
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A list of Cypher queries.
+        """
         results = []
         if self.match_label_and_property(tagMap) != -1:
             results.append(self.match_label_and_property(tagMap))
@@ -136,7 +137,9 @@ class Tokenize():
         """
         Author: Angie Pinchbeck, Kevin Feddema (where indicated)
         Date created: 25/03/2018
-        Date last modified: 27/03/2018
+        Date last modified: 28/03/2018
+
+        This method filters a node for one label only, and returns a list of the properties asked for.
 
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
@@ -231,18 +234,20 @@ class Tokenize():
         return query1
 
 
-    """
-    Method name: numberStartsWith
-    Author: Kevin Feddema
-    Date created: 19/03/2018
-    Date last modified: 25/03/2018
-    Python version: Anaconda 3.6
-        
-    The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names 
-    begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
-    common when asking for the number of names that begin with a letter according to out NLP survey results
-    """
     def numberStartsWith(self, tagMap):
+        """
+        Author: Kevin Feddema
+        Date created: 19/03/2018
+        Date last modified: 25/03/2018
+
+        The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names
+        begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
+        common when asking for the number of names that begin with a letter according to out NLP survey results
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A Cypher query as a string if appropriate; else, -1.
+        """
+
         query5 = ""  # the final query that is returned after processing
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
                             # the need to return count and 0 if not
@@ -292,6 +297,15 @@ class Tokenize():
         return query5
 
     def returnName(self, tagMap):
+        """
+        Author: Osahon David Osemwegie
+        Date created: 25/03/2018
+        Date last modified: 26/03/2018
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A Cypher query as a string if appropriate; else, -1.
+        """
+
         """Creating a list of possible labels and attributes
         that may be in the tagMap"""
         atrList = {"name": "name", "names": "name"}
@@ -317,16 +331,16 @@ class Tokenize():
         else:
             output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
         return output
-      
-    """
-    Method name: listAllof
-    Author: Kevin Feddema & Joseph Pruner
-    Date created: 25/03/2018
-    Date last modified: 26/03/2018
-    Python version: Anaconda 3.6
-    """
 
     def listAllOf(self, tagMap):
+        """
+        Author: Kevin Feddema & Joseph Pruner
+        Date created: 25/03/2018
+        Date last modified: 26/03/2018
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A Cypher query as a string if appropriate; else, -1.
+        """
         listAllIndicator = 0
 
         """Determine if there is an 'all' indicator in the user's input"""
