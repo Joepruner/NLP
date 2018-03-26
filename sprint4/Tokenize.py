@@ -35,6 +35,7 @@ class Tokenize():
         20/03/2018  Fixed __init__ to tag words before scrubbing them
         25/03/2018  Moved numberStartsWith() to be inside the Tokenize class
         26/03/2018  Expanded the kept stop words; added singularize method and removed PorterStemmer
+        27/03/2018  Added the initDatabaseDictionaries() method to initialize Label, Relationships, etc.
 
     Attributes:
         keptStopWords(String[]): A list of words that we don't want to have scrubbed from input, even though
@@ -48,13 +49,23 @@ class Tokenize():
         wordsUnFiltered (String[]): The words and their Stanford CoreNLP tags attached, so far unfiltered of stop words.
         wordsTagged (Tuple(String, String)): The words and their Stanford CoreNLP tags attached, after being filtered
             of stop words.
+        labels [List]:  The list of unique labels that exist within a graph database.
+        relationships [List]:   The list of unique relationships that exist within a graph database.
+        labelProperties [Dictionary]:   Has the properties attached to every label from the "labels" list.
+        relationshipProperties [Dictionary]:   Has the properties attached to every
+            relationship from the "relationships" list.
 
     """
     
     keptStopWords = ["how", "all", "with", "have", "who", "and", "are", "is"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
+    labels = []
+    relationships = []
+    labelProperties = {}
+    relationshipProperties = {}
 
     def __init__(self, data):
+        self.initDatabaseDictionaries()
         self.words = word_tokenize(data.lower())
         self.wordsUnFiltered = nltk.pos_tag(self.words)
         self.wordsTagged = []
@@ -62,6 +73,40 @@ class Tokenize():
             if wt[0] not in self.stopWords:
                 tuple = (singularize(wt[0]), wt[1])
                 self.wordsTagged.append(tuple)
+
+    """
+    Method name: initDatabaseDictionaries()
+    Author: Angie Pinchbeck
+    Date created: 27/03/2018
+    Date last modified: 27/03/2018
+    Python version: Python 3.5
+    
+    This method initializes the lists that are used for language comparison in the translation methods. 
+    For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with 
+    actual databases. The Cypher query needed to return that information from the database is listed
+    above each initialization so that, in the future, this method can be scaled to include the feature of 
+    linking to a real database. 
+    """
+    def initDatabaseDictionaries(self):
+
+        # MATCH (n) RETURN distinct labels(n)
+        self.labels = ["Person", "Animal", "Outlaw"]
+
+        #MATCH n-[r]-() RETURN distinct type(r)
+        self.relationships = ["LIKES", "DISLIKES", "PARENTS", "BROTHER"]
+
+        """ Note that the following Cypher query would need to run in a loop for every label that 
+        was already in self.labels to fill out the labelProperties dictionary """
+        # MATCH (n:Label) UNWIND keys(n) AS key RETURN collect(distinct key)
+        self.labelProperties = dict(Person=["name", "female", "size", "bounty"], Animal=["name", "species"],
+                                         Outlaw=["name", "bounty", "size"])
+
+        """ Note that the following Cypher query would need to run in a loop for every relationship that 
+        was already in self.relationships to fill out the relationshipProperties dictionary """
+        # MATCH (n:Label) UNWIND keys(n) AS key RETURN collect(distinct key)
+        self.relationshipProperties = dict(LIKES=["because"], DISLIKES=["because"], PARENTS=["gift"], BROTHER=[])
+
+
 
     """
     Method name: runTranslator()
