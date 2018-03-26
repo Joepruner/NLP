@@ -23,6 +23,7 @@ import sys
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from inflection import singularize
+import unicodedata  # for case-insensitive comparisons
 
 
 class Tokenize():
@@ -108,6 +109,19 @@ class Tokenize():
         # MATCH (n:Label) UNWIND keys(n) AS key RETURN collect(distinct key)
         self.relationshipProperties = dict(LIKES=["because"], DISLIKES=["because"], PARENTS=["gift"], BROTHER=[])
 
+    def equals_ignore_case(self, s1, s2):
+        """
+        Author: Angie Pinchbeck
+        Date created: 27/03/2018
+        Date last modified: 27/03/2018
+
+        This method compares two strings case-insensitively and returns true if they're the same.
+
+        :param s1: The first string to compare.
+        :param s2: The second string to compare.
+        :return: boolean: True if they are the same, False if they are different.
+        """
+        return unicodedata.normalize("NFKD", s1.casefold()) == unicodedata.normalize("NFKD", s2.casefold())
 
 
     def runTranslator(self, tagMap):
@@ -199,7 +213,7 @@ class Tokenize():
         labelNouns = []
         for n in nouns:
             for l in self.labels:
-                if self.equalsIgnoreCase(n, l):
+                if self.equals_ignore_case(n, l):
                     labelNouns.append(n)
         """
         Check that there is only 1 "label" noun. If otherwise, this method should not handle it, return -1.
@@ -216,7 +230,7 @@ class Tokenize():
         propertyNouns = []
         for n in nouns:
             for item in self.labelProperties[label.capitalize()]:
-                if self.equalsIgnoreCase(n, item):
+                if self.equals_ignore_case(n, item):
                     propertyNouns.append(n)
 
         #print(self.labelProperties[label.capitalize()])
@@ -382,8 +396,8 @@ tokenization until "e" is entered.
 """
 
 sysin = sys.argv[1:]
-string = " ".join(sysin)
-#string = "Who are the outlaws and what are the bounties on them?"
+#string = " ".join(sysin)
+string = "Who are the outlaws and what are the bounties on them?"
 #string = "What are the species of every the animals?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
