@@ -240,7 +240,7 @@ class Tokenize():
 
         """If any of the following variables are empty then Return 2"""
         if attribute == "" or label == "" or preLabel == "":
-            return -2
+            return -1
         else:
             output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
         return output
@@ -295,7 +295,8 @@ tokenization until "e" is entered.
 """
 
 sysin = sys.argv[1:]
-string = " ".join(sysin)
+string = input()
+#string = " ".join(sysin)
 #string = "What are the names of all the people?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
@@ -303,28 +304,27 @@ string = " ".join(sysin)
 #string = "who are the outlaws"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
-print (string)
-t = Tokenize(string)
-tagMap = t.wordsTagged
+#t = Tokenize(string)
+#tagMap = t.wordsTagged
 #print(tagMap)
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
 #print(t.listAllOf(tagMap))
 #print(t.returnName(tagMap))
 
-results = t.runTranslator(tagMap)
-for item in results:
-    print(item)
+#results = t.runTranslator(tagMap)
+#for item in results:
+#    print(item)
 
 
-"""
-while (data != 'e'):
-    t = Tokenize(data)
-    print(t.words)
-    #print(t.wordsFiltered)
-    print(t.wordsTagged)
-    #print(t.get_tags())
+
+while (string != 'e'):
+    t = Tokenize(string)
+    tagMap = t.wordsTagged
+    results = t.runTranslator(tagMap)
+    for item in results:
+        print(item)
     print("Enter a sentence to tokenize (\"e\" to exit): ")
-    data = input()
+    string = input()
 
-"""
+
