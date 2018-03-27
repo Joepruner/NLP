@@ -23,6 +23,8 @@ import sys
 from nltk.corpus import stopwords
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
+from inflection import singularize
+#from pattern.text.en import singularize
 
 
 class Tokenize():
@@ -34,6 +36,7 @@ class Tokenize():
     Modifications:
         20/03/2018  Fixed __init__ to tag words before scrubbing them
         25/03/2018  Moved numberStartsWith() to be inside the Tokenize class
+        26/03/2018  Expanded the kept stop words to include "who".
 
     Attributes:
         keptStopWords(String[]): A list of words that we don't want to have scrubbed from input, even though
@@ -50,28 +53,81 @@ class Tokenize():
             of stop words.
 
     """
-    keptStopWords = ["how", "all", "with", "have"]
+    keptStopWords = ["how", "all", "with", "have", "who", "and"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     ps = PorterStemmer()
 
     def __init__(self, data):
         self.words = word_tokenize(data)
-        self.wordsUnFiltered = nltk.pos_tag(self.words)
+        self.wordStems = []
+        for word in self.words:
+            #self.wordStems.append(word)
+            self.wordStems.append(singularize(word.lower()))
+        self.wordsUnFiltered = nltk.pos_tag(self.wordStems)
         self.wordsTagged = []
         for wt in self.wordsUnFiltered:
             if wt[0].lower() not in self.stopWords:
-                """
-                For stems of words instead of whole words, comment out:
-                self.wordsFiltered.append(wt)
-                Then comment in:
-                self.wordsFiltered.append(self.ps.stem(w))
-                """
-                self.wordsTagged.append(wt)
-                # self.wordsFiltered.append(self.ps.stem(w))
-        
-    """ The next line can be used if we ever decide to deal in multiple sentences at one time. """
-    # self.wordsTagged.append(nltk.pos_tag(self.wordsFiltered))
+                if wt[1] == 'NNS':
+                    tuple = (singularize(wt[0]), 'NN')
+                    self.wordsTagged.append(tuple)
+                else:
+                    self.wordsTagged.append(wt)
 
+
+    """
+    Method name: matchLabelAndProperty
+    Author: Angie Pinchbeck
+    Date created: 25/03/2018
+    Date last modified: 26/03/2018
+    Python version: Python 3.5
+    """
+
+    def matchLabelAndProperty(self, tagMap):
+        print(tagMap)
+        nounCount = 0
+        for item in tagMap:
+            if item[1] == 'NN':
+                nounCount += 1
+        if nounCount < 2:
+            return -1
+
+        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
+        # the need to return count and 0 if not
+
+        """Determine if there is a count indicator in the user's input"""
+        for elem in tagMap:
+            if elem[0] == 'number':
+                countIndicator = 1
+        chunkSequence = '''Chunk:{<WRB>+ <JJ>+}'''
+        NPChunker = nltk.RegexpParser(chunkSequence)
+        chunks = NPChunker.parse(tagMap)
+        for n in chunks:
+            if isinstance(n, nltk.tree.Tree):
+                if n.label() == 'Chunk':
+                    howMany = n
+                    countIndicator = 1
+        """If a countIndicator is found in the question, the question shouldn't be handled by this method, return -1"""
+        if countIndicator == 1:
+            return -1
+
+        """
+        Based on position of the word 'all', work out whether the label will appear in the tagMap before or 
+        after the properties
+        """
+
+        nounCount = 0
+        for item in tagMap[::-1]:
+            if item[1] == 'NN' and nounCount == 0:
+                nodeName = item[0][0]
+                label = item[0].capitalize()
+                nounCount += 1
+                #print("Label: " + label)
+            elif item[1] == 'NN':
+                prop = item[0]
+                nounCount += 1
+                #print("Property: " + prop)
+        query1 = "MATCH (" + nodeName + " :" + label + ") RETURN " + nodeName + "." + prop
+        return query1
 
     """
     Method name: numberStartsWith
@@ -88,7 +144,8 @@ class Tokenize():
 
     def numberStartsWith(self, tagMap):
         query5 = ""  # the final query that is returned after processing
-        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates the need to return count and 0 if not
+        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
+                            # the need to return count and 0 if not
 
         """Determine if there is a count indicator in the user's input"""
         for elem in tagMap:
@@ -110,7 +167,8 @@ class Tokenize():
         if countIndicator == 0:
             return -1
 
-        """Determine the attribute that the user wants the count of. And determine whether the user wants to know if the attribute contains, starts with, or ends with"""
+        """Determine the attribute that the user wants the count of. 
+        And determine whether the user wants to know if the attribute contains, starts with, or ends with"""
         attribute = ""
         condition = ""
         # NOTE: there are quite a few assumptions made here
@@ -146,14 +204,15 @@ tokenization until "e" is entered.
 """
 # print("Enter a sentence to tokenize (\"e\" to exit): ")
 sysin = sys.argv[1:]
-string = " ".join(sysin)
+#string = " ".join(sysin)
+string = "What are all the movie titles?"
 #string = "How many names start with J?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
-#print(t.wordsTagged)
-print(t.numberStartsWith(tagMap))
+
+print(t.matchLabelAndProperty(tagMap))
 
 
 """
