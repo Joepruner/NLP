@@ -86,7 +86,8 @@ class Tokenize():
 
         This method initializes the lists that are used for language comparison in the translation methods.
         For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with
-        actual databases. The Cypher query needed to return that information from the database is listed            above each initialization so that, in the future, this method can be scaled to include the feature of
+        actual databases. The Cypher query needed to return that information from the database is listed
+        above each initialization so that, in the future, this method can be scaled to include the feature of
         linking to a real database.
 
         :return: nothing
@@ -138,13 +139,15 @@ class Tokenize():
         """
         results = []
         if self.match_label_and_property(tagMap) != -1:
-            results.append(self.match_label_and_property(tagMap))
-        if self.numberStartsWith(tagMap) != -1:
-            results.append(self.numberStartsWith(tagMap))
-        if self.listAllOf(tagMap) != -1:
-            results.append(self.listAllOf(tagMap))
+            results.append("query1: " + self.match_label_and_property(tagMap))
         if self.returnName(tagMap) != -1:
-            results.append(self.returnName(tagMap))
+            results.append("query2: " + self.returnName(tagMap))
+        if self.listAllOf(tagMap) != -1:
+            results.append("query3: " + self.listAllOf(tagMap))
+        if self.numberStartsWith(tagMap) != -1:
+            results.append("query5: " + self.numberStartsWith(tagMap))
+
+
         return results
 
     def match_label_and_property(self, tagMap):
@@ -160,6 +163,25 @@ class Tokenize():
         """
 
         """
+        Check that there aren't two labels in the words of the tagMap. If there are, this method shouldn't handle it; 
+        return -1.
+        NOTE: 
+            This feature has been added after some failed unittest; it was noted that occasionally nltk.pos_tag doesn't 
+            actually tag the words correctly. For example, in the sentence "Who are all the people that are outlaws?", 
+            'outlaws' is obviously a noun. But nltk.pos_tag gives in the Stanford CoreNLP tag of 'VBN', that is, a verb 
+            past participle. To combat this problem, we first do a quick check by running the words in the tagMap 
+            against the words in the labels list.  
+        
+        """
+        labelCount = 0
+        for tm in tagMap:
+            for l in self.labels:
+                if self.equals_ignore_case(tm[0], l):
+                    labelCount += 1
+        if labelCount > 1:
+            return -1
+
+        """
         keywords: A list of words that indicate that the user wants an identifying quality of a Label returned.
         NOTE:
             This operates under the assumption that the database has been designed in such a way that the first
@@ -169,23 +191,28 @@ class Tokenize():
             However, it will obviously not work if the database has been designed differently.
             This is a section of the program where some reinforcement machine learning could come in handy. 
         """
-        keywords = ["who", "every", "each", "all"]
+        keywords = ["who", "every", "each", "all", "list", "return"]
 
         nounTags = ["NN", "NNS", "NNP", "NNPS"]
 
         """ Be sure there are at least two nouns to work with """
         nounCount = 0
         for item in tagMap:
-            if item[1] == 'NN' or item[1] == 'NNS':
+            if item[1] in nounTags:
                 nounCount += 1
-            elif item[0] in keywords:
+            elif item[0] in keywords:   # another noun has been implied if one of the keywords has been used
                 nounCount += 1
         if nounCount < 2:
             return -1
 
-        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
-        # the need to return count and 0 if not
-        """Determine if there is a count indicator in the user's input"""
+        """
+        This portion of the code is a modified version of code written by Kevin Feddema. It determines whether or not
+        there are words that indicate the user is asking for a "count" of some kind. If there is, then this method
+        should not handle it; return -1.
+        
+        countIndicator: This will be 1 if "count" is indicated, 0 if not.
+        """
+        countIndicator = 0
         for elem in tagMap:
             if elem[0] == 'number':
                 countIndicator = 1
@@ -197,7 +224,6 @@ class Tokenize():
                 if n.label() == 'Chunk':
                     howMany = n
                     countIndicator = 1
-        """If a countIndicator is found in the question, the question shouldn't be handled by this method, return -1"""
         if countIndicator == 1:
             return -1
 
@@ -218,6 +244,10 @@ class Tokenize():
         """
         Check that there is only 1 "label" noun. If otherwise, this method should not handle it, return -1.
         If it only has one, assign that one to "label".
+        NOTE:
+            This code is slightly redundant after having checked the labels at the beginning of this method, 
+            but it is kept here for two reasons: One, in case the tagging situation is ever resolved, and two,
+            as it assigns the value label.   
         """
         if len(labelNouns) != 1:
             return -1
@@ -226,14 +256,21 @@ class Tokenize():
 
         """
         Populate a list of the nouns that are properties.
+        NOTE:
+            The list "keywords" comes into play here. We are assuming that if a user has used a certain keyword, they are 
+            implying the use of a defining property, which we are assuming is the first property listed under a node.
+            We're assuming a lot.   
         """
         propertyNouns = []
+        for tm in tagMap:
+            for k in keywords:
+                if self.equals_ignore_case(tm[0], k) and self.labelProperties[label][0] not in propertyNouns:
+                    propertyNouns.append(self.labelProperties[label][0])
+
         for n in nouns:
             for item in self.labelProperties[label.capitalize()]:
-                if self.equals_ignore_case(n, item):
+                if self.equals_ignore_case(n, item) and n not in propertyNouns:
                     propertyNouns.append(n)
-
-        #print(self.labelProperties[label.capitalize()])
 
         """
         Build the final query.
@@ -396,18 +433,21 @@ tokenization until "e" is entered.
 """
 
 sysin = sys.argv[1:]
-#string = " ".join(sysin)
-string = "Who are the outlaws and what are the bounties on them?"
-#string = "What are the species of every the animals?"
+string = " ".join(sysin)
+#string = "Who are the outlaws and what are the bounties on them?"
+#string = "What are the species of each the animals?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
 #string = "what are the names of the outlaws"
-#string = "who are the outlaws"
+#string = "Who are all the outlaws?"
+#string = "give me a list of all the outlaws"
+#string = "Which animals are also outlaws?"
+#string = "Who are the people that are outlaws?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
-# print(tagMap)
+#print(tagMap)
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
 #print(t.listAllOf(tagMap))
