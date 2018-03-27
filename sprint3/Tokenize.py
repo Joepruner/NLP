@@ -50,7 +50,7 @@ class Tokenize():
             of stop words.
 
     """
-    keptStopWords = ["how", "all", "with", "have"]
+    keptStopWords = ["how", "all", "with", "have", "are", "is"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     ps = PorterStemmer()
 
@@ -133,6 +133,46 @@ class Tokenize():
         query5 = "MATCH (n) WHERE n " + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n " + attribute + ")"
         return query5
 
+    """
+   Method name: listAllof
+   Author: Kevin Feddema & Joseph Pruner
+   Date created: 25/03/2018
+   Date last modified: 26/03/2018
+   Python version: Anaconda 3.6
+    """
+
+    def listAllOf(self, tagMap):
+        listAllIndicator = 0
+
+        """Determine if there is an 'all' indicator in the user's input"""
+        for elem in tagMap:
+            if elem[0] == 'every' or elem[0] == 'all':
+                listAllIndicator = 1
+        if listAllIndicator == 0:
+            return -1
+
+        query3 = ""
+        noun = ""
+        property = ""
+        biGrams = nltk.bigrams(tagMap)
+
+        for bi in biGrams:
+            print(bi)
+            if (bi[0][1] == 'PDT' or bi[0][1] == 'DT') and \
+                    (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
+                        1] == 'JJ'):
+                property = bi[1][0]
+            if (bi[0][1] == 'VBP' or bi[0][1] == 'VBZ') and \
+                    (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
+                        1] == 'JJ'):
+                noun = bi[1][0]
+        if property != "" and noun != "":
+            query3 += "MATCH (n {" + property + " :"
+            query3 += "\'" + noun + "\'" + "}) RETURN n"
+        elif property != "" and noun == "":
+            query3 += "MATCH (n :" + property + ") RETURN n"
+        return query3
+
 
 """
 The following code allows for input. 
@@ -147,13 +187,14 @@ tokenization until "e" is entered.
 # print("Enter a sentence to tokenize (\"e\" to exit): ")
 sysin = sys.argv[1:]
 string = " ".join(sysin)
-#string = "How many names start with J?"
+string = "Show me all the species that are dogs?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
 #print(t.wordsTagged)
 print(t.numberStartsWith(tagMap))
+print(t.listAllOf(tagMap))
 
 
 """
