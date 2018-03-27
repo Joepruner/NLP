@@ -79,6 +79,27 @@ class Tokenize():
                 tuple = (singularize(wt[0].lower()), wt[1])
                 self.wordsTagged.append(tuple)
 
+    """
+    Method name: runTranslator()
+    Author: Angie Pinchbeck
+    Date created: 26/03/2018
+    Date last modified: 26/03/2018
+    Python version: Python 3.5
+    
+    This is a method that will run an input tagMap through all the other translation methods, and then return a list
+    of all the queries that are output.
+    """
+    def runTranslator(self, tagMap):
+        results = []
+        if self.matchLabelAndProperty(tagMap) != -1:
+            results.append(self.matchLabelAndProperty(tagMap))
+        if self.numberStartsWith(tagMap) != -1:
+            results.append(self.numberStartsWith(tagMap))
+        if self.listAllOf(tagMap) != -1:
+            results.append(self.listAllOf(tagMap))
+        if self.returnName(tagMap) != -1:
+            results.append(self.returnName(tagMap))
+        return results
 
     """
     Method name: matchLabelAndProperty
@@ -87,7 +108,6 @@ class Tokenize():
     Date last modified: 26/03/2018
     Python version: Python 3.5
     """
-
     def matchLabelAndProperty(self, tagMap):
         nounCount = 0
         for item in tagMap:
@@ -239,14 +259,14 @@ class Tokenize():
             return -2
         else:
             output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
-
         return output
+      
     """
-   Method name: listAllof
-   Author: Kevin Feddema & Joseph Pruner
-   Date created: 25/03/2018
-   Date last modified: 26/03/2018
-   Python version: Anaconda 3.6
+    Method name: listAllof
+    Author: Kevin Feddema & Joseph Pruner
+    Date created: 25/03/2018
+    Date last modified: 26/03/2018
+    Python version: Anaconda 3.6
     """
 
     def listAllOf(self, tagMap):
@@ -265,7 +285,6 @@ class Tokenize():
         biGrams = nltk.bigrams(tagMap)
 
         for bi in biGrams:
-            print(bi)
             if (bi[0][1] == 'PDT' or bi[0][1] == 'DT') and \
                     (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
                         1] == 'JJ'):
@@ -280,51 +299,46 @@ class Tokenize():
         elif property != "" and noun == "":
             query3 += "MATCH (n :" + property + ") RETURN n"
         return query3
+
 """
 The following code allows for input. 
 When running from website use:
     string = " ".join(sysin)
 When running from console use:
     string = input()  
-
 For testing purposes, a while-loop is included at the bottom (commented out) that will allow for continual input and 
 tokenization until "e" is entered. 
 """
-# print("Enter a sentence to tokenize (\"e\" to exit): ")
 
-# # sysin = sys.argv[1:]
-# # string = " ".join(sysin)
-# string = "what are the outlaw's names"
 sysin = sys.argv[1:]
 string = " ".join(sysin)
+#string = "What are the names of all the people?"
+#string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
+#string = "what are the names of the outlaws"
+#string = "who are the outlaws"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 print (string)
 t = Tokenize(string)
 tagMap = t.wordsTagged
-#print(t.wordsTagged)
 #print(tagMap)
-print(t.matchLabelAndProperty(tagMap))
-print(t.numberStartsWith(tagMap))
-print(t.listAllOf(tagMap))
+#print(t.matchLabelAndProperty(tagMap))
+#print(t.numberStartsWith(tagMap))
+#print(t.listAllOf(tagMap))
+#print (t.returnName(tagMap))
 
-string = "what are the names of the outlaws"
-print (string)
-t = Tokenize(string)
-tagMap = t.wordsTagged
-print(t.wordsTagged)
-print (t.wordsUnFiltered)
-print (t.returnName(tagMap))
-print
+results = t.runTranslator(tagMap)
+for item in results:
+    print(item)
 
-string = "who are the outlaws"
-print (string)
-t = Tokenize(string)
-tagMap = t.wordsTagged
-print(t.wordsTagged)
-print (t.wordsUnFiltered)
-print (t.returnName(t.wordsUnFiltered))
+
+#print (string)
+#t = Tokenize(string)
+#tagMap = t.wordsTagged
+#print(t.wordsTagged)
+#print (t.wordsUnFiltered)
+#print (t.returnName(t.wordsUnFiltered))
 
 """
 while (data != 'e'):
