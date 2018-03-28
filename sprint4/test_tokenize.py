@@ -3,8 +3,9 @@ from Tokenize import Tokenize
 
 class TestTokenize(unittest.TestCase):
 
-    query1_1 = "MATCH (p :Person) RETURN p.name"
-    query1_2 = "MATCH (m :Movie) RETURN m.title"
+    query1_1 = "MATCH (n :Person) RETURN n.name"
+    query1_2 = "MATCH (n :Outlaw) RETURN n.name, n.bounty"
+    query1_3 = "MATCH (n :Animal) RETURN n.name, n.species"
     query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
     """
@@ -32,45 +33,77 @@ class TestTokenize(unittest.TestCase):
         self.assertEqual(t.wordsTagged, [('how', 'WRB')]);
 
     """
-    Test matchLabelAndProperty with query1_1, defined above.
+    Test match_label_and_property with query1_1, defined above.
     """
-    def test1_matchLabelAndProperty(self):
+    def test1_match_label_and_property(self):
         string = "What are the names of all the people?"
         t = Tokenize(string)
-        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_1)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_1)
 
     """
-    Test matchLabelAndProperty with query1_1, defined above, with lowercase.
+    Test match_label_and_property with query1_1, defined above, with lowercase.
     """
-    def test2_matchLabelAndProperty(self):
+    def test2_match_label_and_property(self):
         string = "what are the names of all the people?"
         t = Tokenize(string)
-        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_1)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_1)
 
     """
-    Test matchLabelAndProperty with query1_1, defined above, with uppercase.
+    Test match_label_and_property with query1_1, defined above, with uppercase.
     """
-    def test3_matchLabelAndProperty(self):
+    def test3_match_label_and_property(self):
         string = "WHAT ARE THE NAMES OF ALL THE PEOPLE?"
         t = Tokenize(string)
-        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_1)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_1)
 
     """
-    Test matchLabelAndProperty with a "how many" question; should return -1.
+    Test match_label_and_property with a "how many" question; should return -1.
     """
-
-    def test4_matchLabelAndProperty(self):
+    def test4_match_label_and_property(self):
         string = "How many names start with J?"
         t = Tokenize(string)
-        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), -1)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), -1)
 
     """
-    Test matchLabelAndProperty with query1_2, defined above.
+    Test match_label_and_property with query1_2, defined above.
     """
-    def test5_matchLabelAndProperty(self):
-        string = "What are all the movie titles?"
+    def test5_match_label_and_property(self):
+        string = "What are the names and bounties of the outlaws?"
         t = Tokenize(string)
-        self.assertEqual(t.matchLabelAndProperty(t.wordsTagged), self.query1_2)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_2)
+
+    """
+    Test match_label_and_property with query1_2, defined above.
+    """
+    def test6_match_label_and_property(self):
+        string = "Who are the outlaws and what are the bounties on them?"
+        t = Tokenize(string)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_2)
+
+    """
+    Test match_label_and_property with query1_3, defined above.
+    """
+    def test7_match_label_and_property(self):
+        string = "What is the species of each animal?"
+        t = Tokenize(string)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_3)
+
+    """
+    Test match_label_and_property with query1_2, defined above.
+    """
+    def test8_match_label_and_property(self):
+        string = "What's the bounty on every outlaw?"
+        t = Tokenize(string)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_2)
+
+    """
+    Test match_label_and_property with query1_3, defined above.
+    """
+
+    def test9_match_label_and_property(self):
+        string = "What are the species of all the animals?"
+        t = Tokenize(string)
+        self.assertEqual(t.match_label_and_property(t.wordsTagged), self.query1_3)
 
     """
     Test for Kevin Feddema's numberStartsWith method for query5_1, defined above, with lowercase.
