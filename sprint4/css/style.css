@@ -19,7 +19,6 @@ header{
     height: 4em;
     width: 100%;
     line-height: 4em;
-    margin-bottom: 2em;
 }
 #nl2cqHead{   
     color: var(--backup);
@@ -28,12 +27,15 @@ header{
     font-size: 2em;
     display: block;
     font-weight: lighter;
+    width: 4em;
+    margin: auto;
 }
 
 /*======LOGO======*/
 .mainLogo{
     height: 6em;
     width: 100%;
+    margin-top: 2em;
 }
 
 /*=====FROM=====*/
@@ -51,10 +53,6 @@ form label{
     display: block;
     margin: 0 auto 1em auto;
     font-size: 3em;
-}
-form input{
-    margin: auto;
-    display: block;
 }
 #userInput{
     border: solid 0.05em darkgray;
@@ -83,6 +81,8 @@ form input{
     font-size: 2em;
     padding: 0.3em 0.5em 0.25em 0.5em;
     transition: 0.2s ease-in-out;
+    text-decoration: none;
+    color: black;
 }
 .largeButton:hover{
     background-color: var(--backup);
@@ -98,6 +98,21 @@ form input{
     background-color: var(--secondary);
     border: solid 0.05em darkgray;
     color: black;
+}
+
+/*=====MAIN=====*/
+main{
+    height: calc(100% - 17.75em);
+    text-align: center;
+}
+main h1{
+    margin: 0.5em auto 1em auto;
+    font-size: 3em;
+    font-weight: lighter;
+}
+main h2{
+    margin: 0 auto 3em auto;
+    font-size: 2em;
 }
 
 /*=====DEVELOPERS=====*/
@@ -122,6 +137,12 @@ form input{
 .developer:hover .developerImg{
     border-radius: 1em;
     box-shadow: 0 6px 8px 0 rgba(0,0,0,0.24), 0 8px 25px 0 rgba(0,0,0,0.19);
+}
+
+/*=====DOCUMENT=====*/
+object{
+    height: calc(100% - 8.25em);
+    width: 100%;
 }
 
 /*=====FOOTER=====*/

@@ -22,8 +22,7 @@ import nltk
 import sys
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-from inflection import singularize      # For singularizing nouns
-import unicodedata      # For case-sensitive comparisons
+from inflection import singularize
 
 
 class Tokenize():
@@ -75,20 +74,20 @@ class Tokenize():
                 tuple = (singularize(wt[0]), wt[1])
                 self.wordsTagged.append(tuple)
 
+    """
+    Method name: initDatabaseDictionaries()
+    Author: Angie Pinchbeck
+    Date created: 27/03/2018
+    Date last modified: 27/03/2018
+    Python version: Python 3.5
+    
+    This method initializes the lists that are used for language comparison in the translation methods. 
+    For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with 
+    actual databases. The Cypher query needed to return that information from the database is listed
+    above each initialization so that, in the future, this method can be scaled to include the feature of 
+    linking to a real database. 
+    """
     def initDatabaseDictionaries(self):
-        """
-        Author: Angie Pinchbeck
-        Date created: 27/03/2018
-        Date last modified: 27/03/2018
-
-        This method initializes the lists that are used for language comparison in the translation methods.
-        For now, these are hardcoded to fit an "Outlaw" database. However, this can be extended for use with
-        actual databases. The Cypher query needed to return that information from the database is listed
-        above each initialization so that, in the future, this method can be scaled to include the feature of
-        linking to a real database.
-
-        :return: nothing
-        """
 
         # MATCH (n) RETURN distinct labels(n)
         self.labels = ["Person", "Animal", "Outlaw"]
@@ -108,35 +107,18 @@ class Tokenize():
         self.relationshipProperties = dict(LIKES=["because"], DISLIKES=["because"], PARENTS=["gift"], BROTHER=[])
 
 
-    def equalsIgnoreCase(self, left, right):
-        """
-        equalsIgnoreCase() compares two strings to see if they are the same, ignoring case
 
-        NOTE: It is the combination of two methods found at:
-                https://stackoverflow.com/questions/319426/how-do-i-do-a-case-insensitive-string-comparison
-
-        Author: Angie Pinchbeck, user Veedrac on stackoverflow.com
-        Date created: 27/03/2018
-        Date last modified: 27/03/2018
-
-        :param left: The first string to be compared
-        :param right: The second string to be compared
-        :return: boolean: true if they are the same, false if they are different
-        """
-        return unicodedata.normalize("NFKD", left.casefold()) == unicodedata.normalize("NFKD", right.casefold())
-
+    """
+    Method name: runTranslator()
+    Author: Angie Pinchbeck
+    Date created: 26/03/2018
+    Date last modified: 26/03/2018
+    Python version: Python 3.5
+    
+    This is a method that will run an input tagMap through all the other translation methods, and then return a list
+    of all the queries that are output.
+    """
     def runTranslator(self, tagMap):
-        """
-        Author: Angie Pinchbeck
-        Date created: 26/03/2018
-        Date last modified: 26/03/2018
-
-        This is a method that will run an input tagMap through all the other translation methods,
-        and then return a list of all the Cypher queries that are output.
-
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A list of all the Cypher queries that have been returned.
-        """
         results = []
         if self.matchLabelAndProperty(tagMap) != -1:
             results.append(self.matchLabelAndProperty(tagMap))
@@ -148,36 +130,24 @@ class Tokenize():
             results.append(self.returnName(tagMap))
         return results
 
+    """
+    Method name: matchLabelAndProperty
+    Author: Angie Pinchbeck
+    Date created: 25/03/2018
+    Date last modified: 26/03/2018
+    Python version: Python 3.5
+    """
     def matchLabelAndProperty(self, tagMap):
-        """
-        Author: Angie Pinchbeck, Kevin Feddema (where indicated)
-        Date created: 25/03/2018
-        Date last modified: 27/03/2018
-
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A Cypher query as a string if appropriate; else, -1.
-        """
-
-        nounTags = ["NN", "NNS", "NNP", "NNPS"]
-
-        """ Be sure there are at least two nouns to work with """
         nounCount = 0
         for item in tagMap:
-            if item[1] in nounTags:
+            if item[1] == 'NN' or item[1] == 'NNS':
                 nounCount += 1
         if nounCount < 2:
             return -1
 
-        """
-        If there is indication that a question is asking for a count of something, this method should not 
-        be used; return -1;
-        
-        countIndicator (below) is either 1 or 0. 
-        It's 1 if there is a chunk or part of speech that indicates the need to return a count, and 0 otherwise.
-        """
-        countIndicator = 0
-
-        """ The following code for determining a count indicator was written by Kevin Feddema """
+        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
+        # the need to return count and 0 if not
+        """Determine if there is a count indicator in the user's input"""
         for elem in tagMap:
             if elem[0] == 'number':
                 countIndicator = 1
@@ -189,34 +159,9 @@ class Tokenize():
                 if n.label() == 'Chunk':
                     howMany = n
                     countIndicator = 1
+        """If a countIndicator is found in the question, the question shouldn't be handled by this method, return -1"""
         if countIndicator == 1:
             return -1
-
-        """ Create a list of all the nouns in this tagMap """
-        nouns = []
-        for item in tagMap:
-            if item[1] in nounTags:
-                nouns.append(item[0])
-
-        """
-        Populate a list of the nouns that are labels.
-        """
-        labelNouns = []
-        for n in nouns:
-            for l in self.labels:
-                if self.equalsIgnoreCase(n, l):
-                    labelNouns.append(n)
-        """
-        Check that there is only 1 "label" noun. If otherwise, this method should not handle it, return -1.
-        """
-        if len(labelNouns) != 1:
-            return -1
-
-        """
-        Populate a list of the nouns that are properties.
-        """
-        propertyNouns = []
-
 
         """
         Based on position of the word 'all', work out whether the label will appear in the tagMap before or 
@@ -258,20 +203,18 @@ class Tokenize():
         return query1
 
 
+    """
+    Method name: numberStartsWith
+    Author: Kevin Feddema
+    Date created: 19/03/2018
+    Date last modified: 25/03/2018
+    Python version: Anaconda 3.6
+        
+    The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names 
+    begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
+    common when asking for the number of names that begin with a letter according to out NLP survey results
+    """
     def numberStartsWith(self, tagMap):
-        """
-        Author: Kevin Feddema
-        Date created: 19/03/2018
-        Date last modified: 25/03/2018
-
-        The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names
-        begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
-        common when asking for the number of names that begin with a letter according to out NLP survey results
-
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A Cypher query as a string if appropriate; else, -1.
-        """
-
         query5 = ""  # the final query that is returned after processing
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
                             # the need to return count and 0 if not
@@ -321,15 +264,6 @@ class Tokenize():
         return query5
 
     def returnName(self, tagMap):
-        """
-        Author: Osahon David Osemwegie
-        Date created: 25/03/2018
-        Date last modified: 26/03/2018
-
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A Cypher query as a string if appropriate; else, -1.
-        """
-
         """Creating a list of possible labels and attributes
         that may be in the tagMap"""
         atrList = {"name": "name", "names": "name"}
@@ -356,18 +290,15 @@ class Tokenize():
             output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
         return output
       
+    """
+    Method name: listAllof
+    Author: Kevin Feddema & Joseph Pruner
+    Date created: 25/03/2018
+    Date last modified: 26/03/2018
+    Python version: Anaconda 3.6
+    """
 
     def listAllOf(self, tagMap):
-
-        """
-        Author: Kevin Feddema & Joseph Pruner
-        Date created: 25/03/2018
-        Date last modified: 26/03/2018
-
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A Cypher query as a string if appropriate; else, -1.
-        """
-
         listAllIndicator = 0
 
         """Determine if there is an 'all' indicator in the user's input"""

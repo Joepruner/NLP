@@ -12,18 +12,15 @@
         <img class="mainLogo" src="res/NL2CQ%20Logo.svg">
         <form action="results.php" method="get">
             <fieldset>
-                <label>Ask your question:</label>
+                <label>Ask a question:</label>
                 <input id="userInput" type="text" name="question">
                 <input type="submit" class="largeButton" name="submit" value="SUBMIT">
             </fieldset>
         </form>
-    
         <footer>
             <span>The Phonetics</span>
             <nav>
                 <a href="about.html">About</a>
-                <em> | </em>
-                <a href="contact.html">Contact</a>
                 <em> | </em>
                 <a href="documentation.html">Documentation</a>
             </nav>
