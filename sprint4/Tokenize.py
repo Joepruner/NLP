@@ -24,7 +24,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from inflection import singularize
 import unicodedata  # for case-insensitive comparisons
-
+from nltk.corpus import wordnet as wn
+from itertools import product
 
 class Tokenize():
     """
@@ -38,7 +39,8 @@ class Tokenize():
         26/03/2018  Expanded the kept stop words; added singularize method and removed PorterStemmer
         27/03/2018  Added the initDatabaseDictionaries() method to initialize Label, Relationships, etc.
                     Added equalsIgnoreCase() method to compare two strings case-insensitively.
-                    Expanded kept stop words: now include "each".
+                    Expanded kept stop words: now includes "each".
+        30/03/2018  Expanded kept stop words: now includes "than".
 
     Attributes:
         keptStopWords(String[]): A list of words that we don't want to have scrubbed from input, even though
@@ -60,7 +62,7 @@ class Tokenize():
 
     """
     
-    keptStopWords = ["how", "all", "with", "have", "who", "and", "is", "each"]
+    keptStopWords = ["how", "all", "with", "have", "who", "and", "is", "each", "than"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     labels = []
     relationships = []
@@ -151,11 +153,35 @@ class Tokenize():
 
         return results
 
+    def similarity_score(self, wordx, wordy):
+        """
+        Author: Angie Pinchbeck
+        Date created: 30/03/2018
+        Date last modified: 30/03/2018
+
+        This is a method that determines how closely related two words are--not that they are similar in spelling or
+        grammar, but that they are conceptually related. For example, if the words "tall" and "size" are checked,
+        the method returns 0.9090909090909091, indicating that the words "tall" and "size" are closely related. However,
+        if the words "cabbage" and "spaceship" are compared, it returns 0.38095238095238093. Words that are almost
+        identical, such as "parent" and "parents" return 1.0.
+
+        :param wordx: The first word for comparison.
+        :param wordy: The second word for comparison.
+        :return: A float representation of how closely related two words are. The closer to 1, the more related.
+        """
+        sem1, sem2 = wn.synsets(wordx), wn.synsets(wordy)
+        maxscore = float(0)
+        for i, j in list(product(sem1, sem2)):
+            score = i.wup_similarity(j)  # Wu-Palmer
+            if score is not None and maxscore < score:
+                maxscore = score
+        return maxscore
+
     def match_label_and_property(self, tagMap):
         """
         Author: Angie Pinchbeck, Kevin Feddema (where indicated)
         Date created: 25/03/2018
-        Date last modified: 28/03/2018
+        Date last modified: 30/03/2018
 
         This method filters a node for one label only, and returns a list of the properties asked for.
 
@@ -177,9 +203,22 @@ class Tokenize():
         labelCount = 0
         for tm in tagMap:
             for l in self.labels:
-                if self.equals_ignore_case(tm[0], l):
+                if self.similarity_score(tm[0], l) > 0.9:
                     labelCount += 1
         if labelCount > 1:
+            return -1
+
+        """
+        Check that there are no relationship nouns in the words of the tagMap. If there are, this method shouldn't 
+        handle it; return -1;
+        """
+        relationshipCount = 0
+        for tm in tagMap:
+            for r in self.relationships:
+                #print(self.similarity_score(tm[0], r))
+                if self.similarity_score(tm[0], r) > 0.9:
+                    relationshipCount += 1
+        if relationshipCount > 0:
             return -1
 
         """
@@ -450,10 +489,6 @@ class Tokenize():
         Date created: 25/03/2018
         Date last modified: 30/03/2018
 
-        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
-        :return: A Cypher query as a string if appropriate; else, -1.
-        """
-
         relationshipIndicator = 0
         relationship = ""
         relationshipTarget = ""
@@ -490,6 +525,46 @@ class Tokenize():
             query7 += "MATCH () -[:" + relationship.capitalize() + "] -> (n" + property + ") RETURN n"
 
         return query7
+      
+      
+      
+    def count_with_operators(self, tagMap):
+        """
+        Author: Angie Pinchbeck
+        Date created: 30/03/2018
+        Date last modified: 30/03/2018
+
+        This method returns queries that are used for aggregating the results of filtering Nodes based on
+        quantification of properties. It deals with the operators <, >, <>, =, >=, <=
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A Cypher query as a string if appropriate; else, -1.
+        """
+        
+        """
+        This portion of the code is a modified version of code written by Kevin Feddema. It determines whether or not
+        there are words that indicate the user is asking for a "count" of some kind. If there is no count indicator, 
+        then this method should not handle it; return -1.
+
+        countIndicator: This will be 1 if "count" is indicated, 0 if not.   
+        """
+        countIndicator = 0
+        for elem in tagMap:
+            if elem[0] == 'number':
+                countIndicator = 1
+        chunkSequence = '''Chunk:{<WRB>+ <JJ>+}'''
+        NPChunker = nltk.RegexpParser(chunkSequence)
+        chunks = NPChunker.parse(tagMap)
+        for n in chunks:
+            if isinstance(n, nltk.tree.Tree):
+                if n.label() == 'Chunk':
+                    howMany = n
+                    countIndicator = 1
+        if countIndicator == 0:
+            return -1
+
+
+        keywords = ["than", "equal", "less", "greater"]
 
 
 """
@@ -503,7 +578,9 @@ tokenization until "e" is entered.
 """
 
 sysin = sys.argv[1:]
-string = " ".join(sysin)
+xstring = " ".join(sysin)
+#string = "What are the names of people with parents?"
+#string = "How many outlaws have a bounty of less than $10,000 on them?"
 #string = "Who are the outlaws and what are the bounties on them?"
 #string = "What are the species of each the animals?"
 #string = "How many names start with J?"
