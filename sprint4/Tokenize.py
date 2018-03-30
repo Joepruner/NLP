@@ -62,7 +62,7 @@ class Tokenize():
 
     """
     
-    keptStopWords = ["how", "all", "with", "have", "who", "and", "are", "is", "each", "than"]
+    keptStopWords = ["how", "all", "with", "have", "who", "and", "is", "each", "than"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     labels = []
     relationships = []
@@ -99,7 +99,7 @@ class Tokenize():
         self.labels = ["Person", "Animal", "Outlaw"]
 
         #MATCH n-[r]-() RETURN distinct type(r)
-        self.relationships = ["LIKES", "DISLIKES", "PARENTS", "BROTHER"]
+        self.relationships = ["likes", "dislikes", "parents", "brother"]
 
         """ Note that the following Cypher query would need to run in a loop for every label that 
         was already in self.labels to fill out the labelProperties dictionary """
@@ -148,6 +148,9 @@ class Tokenize():
             results.append("query3: " + self.listAllOf(tagMap))
         if self.numberStartsWith(tagMap) != -1:
             results.append("query5: " + self.numberStartsWith(tagMap))
+        if self.relationshipOrder(tagMap) != -1:
+            results.append("query7: " + self.relationshipOrder(tagMap))
+
         return results
 
     def similarity_score(self, wordx, wordy):
@@ -424,14 +427,14 @@ class Tokenize():
         """
         Author: Kevin Feddema & Joseph Pruner
         Date created: 25/03/2018
-        Date last modified: 26/03/2018
+        Date last modified: 29/03/2018
 
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
         """
         listAllIndicator = 0
 
-        """Determine if there is an 'all' indicator in the user's input"""
+        """Determine if there is an 'all' or 'every' indicator in the user's input"""
         for elem in tagMap:
             if elem[0] == 'every' or elem[0] == 'all':
                 listAllIndicator = 1
@@ -439,26 +442,92 @@ class Tokenize():
             return -1
 
         query3 = ""
-        noun = ""
         property = ""
+        propertySubType = ""
         biGrams = nltk.bigrams(tagMap)
-
+        """Find the important words by finding word patterns like "all (nouns)"
+        I am assuming a person will enter the type of property first (first noun), then the sub-type of property."""
         for bi in biGrams:
+            print(bi)
             if (bi[0][1] == 'PDT' or bi[0][1] == 'DT') and \
                     (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
                         1] == 'JJ'):
                 property = bi[1][0]
+
             if (bi[0][1] == 'VBP' or bi[0][1] == 'VBZ') and \
                     (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
                         1] == 'JJ'):
-                noun = bi[1][0]
-        if property != "" and noun != "":
-            query3 += "MATCH (n {" + property + " :"
-            query3 += "\'" + noun + "\'" + "}) RETURN n"
-        elif property != "" and noun == "":
-            query3 += "MATCH (n :" + property + ") RETURN n"
+                propertySubType = bi[1][0]
+        print("property is "+property)
+        print("propertySubType is "+propertySubType)
+        if (property.capitalize() or propertySubType.capitalize()) in self.labels:
+            print("Query contains label, do not handle")
+            return -1
+        """If there are no properties in this query, do not handle"""
+        if (propertySubType not in [x for v in self.labelProperties.values() for x in v]) and \
+           (property not in [x for v in self.labelProperties.values() for x in v]):
+            print("Nothing is a property")
+            return -1
+
+        """If for some reason the person types the property as the second noun, swap them."""
+        if propertySubType in [x for v in self.labelProperties.values() for x in v]:
+            temp = propertySubType
+            propertySubType = property
+            property = temp
+            print("noun and property swapped")
+
+        if property != "" and propertySubType != "":
+            query3 += "MATCH (n {" + property.capitalize() + " :"
+            query3 += "\'" + propertySubType + "\'" + "}) RETURN n"
+        elif property != "" and propertySubType == "":
+            query3 += "MATCH (n) where exists (n." + property.capitalize() + ") RETURN n"
         return query3
 
+    def relationshipOrder(self, tagMap):
+        """
+        Author: Joseph Pruner & Kevin Feddema
+        Date created: 25/03/2018
+        Date last modified: 30/03/2018
+
+        relationshipIndicator = 0
+        relationship = ""
+        relationshipTarget = ""
+        property = ""
+        """Determine if there is a relationship in the user's input"""
+        for elem in tagMap:
+            if elem[0]+"s" in self.relationships:
+                relationship = elem[0]
+                relationshipIndicator = 1
+            elif elem[0] in [x for v in self.labelProperties.values() for x in v]:
+                property = "."+elem[0]
+        if relationshipIndicator == 0:
+            return -1
+        print("In a relationship")
+
+        query7 = ""
+        biGrams = nltk.bigrams(tagMap)
+        #trigrams = nltk.trigrams(tagMap)
+        """Find the target of the relationship. i.e. parent of "Joe"."""
+        for bi in biGrams:
+            print(bi)
+            if bi[0][0] == relationship and (bi[1][1] == 'NNS' or bi[1][1] == 'NNP'
+               or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][1] == 'JJ'):
+               relationshipTarget = bi[1][0]
+            if bi[1][0] == relationship and (bi[0][1] == 'NNS' or bi[0][1] == 'NNP'
+               or bi[0][1] == 'NN' or bi[0][1] == 'NNPS' or bi[0][1] == 'JJ'):
+               relationshipTarget = bi[1][0]
+            #if (bi[0][1] == 'JJR' or bi[0][1] == 'JJS')
+        print("relationship is " + relationship)
+        print("relationship target is "+relationshipTarget)
+        print("Property is " + property)
+
+        if relationship != "" and relationshipTarget == "":
+            query7 += "MATCH () -[:" + relationship.capitalize() + "] -> (n" + property + ") RETURN n"
+
+        return query7
+      
+      
+      
     def count_with_operators(self, tagMap):
         """
         Author: Angie Pinchbeck
@@ -471,7 +540,7 @@ class Tokenize():
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
         """
-
+        
         """
         This portion of the code is a modified version of code written by Kevin Feddema. It determines whether or not
         there are words that indicate the user is asking for a "count" of some kind. If there is no count indicator, 
@@ -498,7 +567,6 @@ class Tokenize():
         keywords = ["than", "equal", "less", "greater"]
 
 
-
 """
 The following code allows for input. 
 When running from website use:
@@ -516,7 +584,8 @@ xstring = " ".join(sysin)
 #string = "Who are the outlaws and what are the bounties on them?"
 #string = "What are the species of each the animals?"
 #string = "How many names start with J?"
-#string = "Show me all the species that are dogs?"
+#string = "Who are all the females that are outlaws?"
+string = "What are the names of people with parents from biggest smallest?"
 #string = "what are the names of the outlaws"
 #string = "Who are all the outlaws?"
 #string = "give me a list of all the outlaws"
