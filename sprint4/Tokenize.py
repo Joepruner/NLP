@@ -144,8 +144,8 @@ class Tokenize():
             results.append("query1: " + self.match_label_and_property(tagMap))
         if self.returnName(tagMap) != -1:
             results.append("query2: " + self.returnName(tagMap))
-        if self.listAllOf(tagMap) != -1:
-            results.append("query3: " + self.listAllOf(tagMap))
+        if self.listAllWithProperty(tagMap) != -1:
+            results.append("query3: " + self.listAllWithProperty(tagMap))
         if self.numberStartsWith(tagMap) != -1:
             results.append("query5: " + self.numberStartsWith(tagMap))
         if self.relationshipOrder(tagMap) != -1:
@@ -423,7 +423,7 @@ class Tokenize():
             output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
         return output
 
-    def listAllOf(self, tagMap):
+    def listAllWithProperty(self, tagMap):
         """
         Author: Kevin Feddema & Joseph Pruner
         Date created: 25/03/2018
@@ -433,100 +433,135 @@ class Tokenize():
         :return: A Cypher query as a string if appropriate; else, -1.
         """
         listAllIndicator = 0
+        propertyIndicator = 0
+
+        property = ""
+        propertySubType = ""
 
         """Determine if there is an 'all' or 'every' indicator in the user's input"""
         for elem in tagMap:
-            if elem[0] == 'every' or elem[0] == 'all':
+            if elem[0].lower() == 'every' or elem[0] == 'all':
                 listAllIndicator = 1
         if listAllIndicator == 0:
             return -1
 
-        query3 = ""
-        property = ""
-        propertySubType = ""
-        biGrams = nltk.bigrams(tagMap)
-        """Find the important words by finding word patterns like "all (nouns)"
-        I am assuming a person will enter the type of property first (first noun), then the sub-type of property."""
-        for bi in biGrams:
-            print(bi)
-            if (bi[0][1] == 'PDT' or bi[0][1] == 'DT') and \
-                    (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
-                        1] == 'JJ'):
-                property = bi[1][0]
+        for elem in tagMap:
+            if elem[0] in [x for y in self.labelProperties.values() for x in y]:
+                property = elem[0]
+                propertyIndicator = 1
+        if propertyIndicator == 0:
+            return -1
 
-            if (bi[0][1] == 'VBP' or bi[0][1] == 'VBZ') and \
-                    (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
-                        1] == 'JJ'):
-                propertySubType = bi[1][0]
-        print("property is "+property)
-        print("propertySubType is "+propertySubType)
         if (property.capitalize() or propertySubType.capitalize()) in self.labels:
             print("Query contains label, do not handle")
             return -1
-        """If there are no properties in this query, do not handle"""
-        if (propertySubType not in [x for v in self.labelProperties.values() for x in v]) and \
-           (property not in [x for v in self.labelProperties.values() for x in v]):
-            print("Nothing is a property")
-            return -1
 
-        """If for some reason the person types the property as the second noun, swap them."""
-        if propertySubType in [x for v in self.labelProperties.values() for x in v]:
-            temp = propertySubType
-            propertySubType = property
-            property = temp
-            print("noun and property swapped")
+        nounTagList = ['NN', 'NNS', 'NNP', 'NNPS']
+        proNounPosessiveList = ['WP', 'WP$']
+        allEvery = ["all", "every"]
+        query3 = ""
+
+        triGrams = nltk.trigrams(tagMap)
+
+        for tri in triGrams:
+            print(tri)
+            if tri[0][0] in allEvery and tri[1][0] == property and tri[2][1] in nounTagList:
+                propertySubType = tri[2][0]
+            elif tri[0][0] in allEvery and tri[1][1] in nounTagList and tri[2][0] == property:
+                 propertySubType = tri[1][0]
+
+            """ elif tri[0][1] in nounTagList and tri[1][0] == relationship and tri[2][0] == property:
+                relationshipTarget = tri[0][0]
+            elif tri[0][1] in proNounPosessiveList and tri[1][0] == relationship and tri[2][1] in nounTagList:
+                relationshipTarget = tri[2][0]
+                property = ".name"
+            elif tri[0][1] in proNounPosessiveList and tri[1][1] in nounTagList and tri[2][0] == relationship:
+                relationshipTarget = tri[1][0]
+                property = ".name"
+            elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
+                relatorProperty = True"""
+
+        print("property is "+property)
+        print("propertySubType is "+propertySubType)
 
         if property != "" and propertySubType != "":
-            query3 += "MATCH (n {" + property.capitalize() + " :"
+            query3 += "MATCH (n {" + property + " :"
             query3 += "\'" + propertySubType + "\'" + "}) RETURN n"
         elif property != "" and propertySubType == "":
-            query3 += "MATCH (n) where exists (n." + property.capitalize() + ") RETURN n"
+            query3 += "MATCH (n) where exists (n." + property + ") RETURN n"
         return query3
 
     def relationshipOrder(self, tagMap):
-        """
-        Author: Joseph Pruner & Kevin Feddema
-        Date created: 25/03/2018
+
+        """Author: Joseph Pruner
+        Date created: 30/03/2018
         Date last modified: 30/03/2018
 
+         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+         :return: A Cypher query as a string if appropriate; else, -1.
+
+        """
         relationshipIndicator = 0
         relationship = ""
         relationshipTarget = ""
+        noRelationshipTarget = False
+        relatorProperty = False
         property = ""
+        nounTagList = ['NN', 'NNS', 'NNP', 'NNPS']
+        proNounPosessiveList = ['WP', 'WP$']
+        allEvery = ["all", "every"]
         """Determine if there is a relationship in the user's input"""
         for elem in tagMap:
             if elem[0]+"s" in self.relationships:
                 relationship = elem[0]
                 relationshipIndicator = 1
             elif elem[0] in [x for v in self.labelProperties.values() for x in v]:
-                property = "."+elem[0]
+                property = elem[0]
         if relationshipIndicator == 0:
             return -1
         print("In a relationship")
 
         query7 = ""
         biGrams = nltk.bigrams(tagMap)
-        #trigrams = nltk.trigrams(tagMap)
-        """Find the target of the relationship. i.e. parent of "Joe"."""
+        triGrams = nltk.trigrams(tagMap)
+        """Find the target of the relationship. i.e. parent of "Joe".
         for bi in biGrams:
             print(bi)
-            if bi[0][0] == relationship and (bi[1][1] == 'NNS' or bi[1][1] == 'NNP'
-               or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][1] == 'JJ'):
-               relationshipTarget = bi[1][0]
-            if bi[1][0] == relationship and (bi[0][1] == 'NNS' or bi[0][1] == 'NNP'
-               or bi[0][1] == 'NN' or bi[0][1] == 'NNPS' or bi[0][1] == 'JJ'):
-               relationshipTarget = bi[1][0]
-            #if (bi[0][1] == 'JJR' or bi[0][1] == 'JJS')
+            if (bi[0][0] == relationship and bi[1][0] == property) or \
+               (bi[0][0] == property and bi[1][0] == relationship) and bi[0][0]:
+                noRelationshipTarget = True"""
+
+        for tri in triGrams:
+            print(tri)
+            if (tri[0][0] == property and tri[1][1] in nounTagList and tri[2][0] == relationship)\
+               or (tri[0][0] == relationship and tri[1][1] in nounTagList and tri[2][0] == property):
+               relationshipTarget = tri[1][0]
+            elif tri[0][1] in nounTagList and tri[1][0] == relationship and tri[2][0] == property:
+               relationshipTarget = tri[0][0]
+            elif tri[0][1] in proNounPosessiveList and tri[1][0] == relationship and tri[2][1] in nounTagList:
+               relationshipTarget = tri[2][0]
+               property = ".name"
+            elif tri[0][1] in proNounPosessiveList and tri[1][1] in nounTagList and tri[2][0] == relationship:
+               relationshipTarget = tri[1][0]
+               property = ".name"
+            elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
+               relatorProperty = True
+
+
+
+
         print("relationship is " + relationship)
         print("relationship target is "+relationshipTarget)
         print("Property is " + property)
 
-        if relationship != "" and relationshipTarget == "":
-            query7 += "MATCH () -[:" + relationship.capitalize() + "] -> (n" + property + ") RETURN n"
+        if relationshipTarget == "" and not relatorProperty:
+            query7 += "MATCH (p) -[:" + relationship.capitalize() + "] -> (n." + property + ") RETURN n"
+        elif relationshipTarget == "" and relatorProperty:
+            query7 += "MATCH (p) -[:" + relationship.capitalize() + "] -> (n) RETURN p." + property
+        elif relationshipTarget != "" and not relatorProperty:
+            query7 = "MATCH (p) -[:" + relationship.capitalize() + "] -> (n{name:\""+relationshipTarget+"\"}) RETURN p."+property
 
         return query7
-      
-      
       
     def count_with_operators(self, tagMap):
         """
@@ -585,7 +620,8 @@ xstring = " ".join(sysin)
 #string = "What are the species of each the animals?"
 #string = "How many names start with J?"
 #string = "Who are all the females that are outlaws?"
-string = "What are the names of people with parents from biggest smallest?"
+string = "Show me all the species that are dogs."
+#string = "What are the names of every parent?"
 #string = "what are the names of the outlaws"
 #string = "Who are all the outlaws?"
 #string = "give me a list of all the outlaws"
@@ -598,7 +634,7 @@ tagMap = t.wordsTagged
 #print(tagMap)
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
-#print(t.listAllOf(tagMap))
+#print(t.listAllwithProperty(tagMap))
 #print(t.returnName(tagMap))
 
 results = t.runTranslator(tagMap)

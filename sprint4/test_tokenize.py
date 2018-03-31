@@ -1,5 +1,6 @@
 import unittest
-from Tokenize import Tokenize
+from sprint4.Tokenize import Tokenize
+
 
 class TestTokenize(unittest.TestCase):
 
@@ -8,6 +9,8 @@ class TestTokenize(unittest.TestCase):
     query1_3 = "MATCH (n :Outlaw) RETURN n.bounty"
     query1_4 = "MATCH (n :Outlaw) RETURN n.name, n.bounty"
     query1_5 = "MATCH (n :Outlaw) RETURN n.name, n.bounty, n.size"
+
+    query3_1 = "MATCH (n {species :'dog'}) RETURN n"
 
     query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
@@ -267,6 +270,12 @@ class TestTokenize(unittest.TestCase):
         string = "How many of the names start with a J?"
         t = Tokenize(string)
         self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    def test1_listAllWithProperty(self):
+        string = "Show me all the species that are dogs."
+        t = Tokenize(string)
+        self.assertEqual(t.listAllWithProperty(t.wordsTagged), self.query3_1)
+
 
 
 if __name__ == '__main__':
