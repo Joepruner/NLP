@@ -11,6 +11,11 @@ class TestTokenize(unittest.TestCase):
 
     query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
+    query2_1 = "MATCH (n  :Animal :Outlaw ) RETURN n.name"
+    query2_2 = "MATCH (n  :Animal :Outlaw :Person ) RETURN n.name"
+    query2_3 = "MATCH (n  :Outlaw :Person :Animal ) RETURN n.name, n.size"
+    query2_4 = "MATCH (n  :Person :Outlaw ) RETURN n.size"
+
     """
     Test that stopWords from Python's NLTK is working.
     """
@@ -267,6 +272,46 @@ class TestTokenize(unittest.TestCase):
         string = "How many of the names start with a J?"
         t = Tokenize(string)
         self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for David Osemwegie return_multiple_labels for query2_1, defined above.
+    """
+    def test1_return_multiple_labels(self):
+        string = "Who are all the animals and outlaws"
+        t = Tokenize(string)
+        self.assertEqual(t.return_multiple_labels(t.wordsTagged), self.query2_1)
+
+    """
+    Test for David Osemwegie return_multiple_labels for query2_1, defined above.
+    """
+    def test2_return_multiple_labels(self):
+        string = "Who are the animals, outlaws and persons"
+        t = Tokenize(string)
+        self.assertEqual(t.return_multiple_labels(t.wordsTagged), self.query2_2)
+
+    """
+    Test for David Osemwegie return_multiple_labels for query2_3, defined above.
+    """
+    def test3_return_multiple_labels(self):
+        string = "What are the sizes of each outlaw and person"
+        t = Tokenize(string)
+        self.assertEqual(t.return_multiple_labels(t.wordsTagged), self.query2_3)
+
+    """
+    Test for David Osemwegie return_multiple_labels for query2_4, defined above.
+    """
+    def test4_return_multiple_labels(self):
+        string = "show me the shoe size of the people and outlaws"
+        t = Tokenize(string)
+        self.assertEqual(t.return_multiple_labels(t.wordsTagged), self.query2_4)
+
+    """
+    Test for David Osemwegie return_multiple_labels.
+    """
+    def test5_return_multiple_labels(self):
+        string = "What are the names of the outlaws?"
+        t = Tokenize(string)
+        self.assertEqual(t.return_multiple_labels(t.wordsTagged), -1)
 
 
 if __name__ == '__main__':

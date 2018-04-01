@@ -18,14 +18,15 @@ As much of possible, we have used the Google style guide for Python:
 
 """
 
-import nltk
-import sys
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from inflection import singularize
 import unicodedata  # for case-insensitive comparisons
-from nltk.corpus import wordnet as wn
 from itertools import product
+
+import nltk
+from inflection import singularize
+from nltk.corpus import stopwords
+from nltk.corpus import wordnet as wn
+from nltk.tokenize import word_tokenize
+
 
 class Tokenize():
     """
@@ -61,7 +62,7 @@ class Tokenize():
             relationship from the "relationships" list.
 
     """
-    
+
     keptStopWords = ["how", "all", "with", "have", "who", "and", "is", "each", "than"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     labels = []
@@ -78,7 +79,6 @@ class Tokenize():
             if wt[0] not in self.stopWords:
                 tuple = (singularize(wt[0]), wt[1])
                 self.wordsTagged.append(tuple)
-
 
     def initDatabaseDictionaries(self):
         """
@@ -98,14 +98,14 @@ class Tokenize():
         # MATCH (n) RETURN distinct labels(n)
         self.labels = ["Person", "Animal", "Outlaw"]
 
-        #MATCH n-[r]-() RETURN distinct type(r)
+        # MATCH n-[r]-() RETURN distinct type(r)
         self.relationships = ["likes", "dislikes", "parents", "brother"]
 
         """ Note that the following Cypher query would need to run in a loop for every label that 
         was already in self.labels to fill out the labelProperties dictionary """
         # MATCH (n:Label) UNWIND keys(n) AS key RETURN collect(distinct key)
         self.labelProperties = dict(Person=["name", "female", "size", "bounty"], Animal=["name", "species"],
-                                         Outlaw=["name", "bounty", "size"])
+                                    Outlaw=["name", "bounty", "size"])
 
         """ Note that the following Cypher query would need to run in a loop for every relationship that 
         was already in self.relationships to fill out the relationshipProperties dictionary """
@@ -126,7 +126,6 @@ class Tokenize():
         """
         return unicodedata.normalize("NFKD", s1.casefold()) == unicodedata.normalize("NFKD", s2.casefold())
 
-
     def runTranslator(self, tagMap):
         """
         Author: Angie Pinchbeck
@@ -142,8 +141,8 @@ class Tokenize():
         results = []
         if self.match_label_and_property(tagMap) != -1:
             results.append("query1: " + self.match_label_and_property(tagMap))
-        if self.returnName(tagMap) != -1:
-            results.append("query2: " + self.returnName(tagMap))
+        if self.return_multiple_labels(tagMap) != -1:
+            results.append("query2: " + self.return_multiple_labels(tagMap))
         if self.listAllOf(tagMap) != -1:
             results.append("query3: " + self.listAllOf(tagMap))
         if self.numberStartsWith(tagMap) != -1:
@@ -215,7 +214,7 @@ class Tokenize():
         relationshipCount = 0
         for tm in tagMap:
             for r in self.relationships:
-                #print(self.similarity_score(tm[0], r))
+                # print(self.similarity_score(tm[0], r))
                 if self.similarity_score(tm[0], r) > 0.9:
                     relationshipCount += 1
         if relationshipCount > 0:
@@ -240,7 +239,7 @@ class Tokenize():
         for item in tagMap:
             if item[1] in nounTags:
                 nounCount += 1
-            elif item[0] in keywords:   # another noun has been implied if one of the keywords has been used
+            elif item[0] in keywords:  # another noun has been implied if one of the keywords has been used
                 nounCount += 1
         if nounCount < 2:
             return -1
@@ -324,7 +323,6 @@ class Tokenize():
         query1 = "MATCH (n :" + label + ") RETURN " + prop
         return query1
 
-
     def numberStartsWith(self, tagMap):
         """
         Author: Kevin Feddema
@@ -341,7 +339,7 @@ class Tokenize():
 
         query5 = ""  # the final query that is returned after processing
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
-                            # the need to return count and 0 if not
+        # the need to return count and 0 if not
 
         """Determine if there is a count indicator in the user's input"""
         for elem in tagMap:
@@ -387,7 +385,7 @@ class Tokenize():
         query5 = "MATCH (n) WHERE n." + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n." + attribute + ")"
         return query5
 
-    def returnName(self, tagMap):
+    def return_multiple_labels(self, tagMap):
         """
         Author: Osahon David Osemwegie
         Date created: 25/03/2018
@@ -397,31 +395,114 @@ class Tokenize():
         :return: A Cypher query as a string if appropriate; else, -1.
         """
 
-        """Creating a list of possible labels and attributes
-        that may be in the tagMap"""
-        atrList = {"name": "name", "names": "name"}
-        labelList = {"outlaws": "outlaw", "outlaw": "outlaw"}
-        preLabelList = {"outlaw", "name"}
-        label = ""
-        attribute = ""
-        preLabel = ""
+        """Sample Question: What are the names of the outlaws and Animals"""
+        """This is a list of words that """
 
-        """Looping through the tagMap"""
+        keywords = ["who", "every", "each", "all", "list", "return"]
+
+        nounTags = ["NN", "NNS", "NNP", "NNPS"]
+
+        """Check to see there are more than 1 labels in the words of the Tagmap
+        If so then return -1.
+        Also checks to see if there are any relationship words in the tagMap
+        If ss or less return -1
+        Note: This section of code is is a modified version of code written by Angie Pinchbeck"""
+
+        labelCount = 0
+        relationshipCount = 0
+        for t in tagMap:
+            for a in self.labels:
+                if self.similarity_score(t[0], a) > 0.9:
+                    labelCount += 1
+            for b in self.relationships:
+                if self.similarity_score(t[0], b) > 0.9:
+                    relationshipCount += 1
+        if labelCount <= 1 or relationshipCount > 1:
+            return -1
+
+        """Check to see if the user is asking for a 'count' if so then return -1"""
+        """Note: This section of code is is a modified version of code written by Kevin Feddema and Angie Pinchbeck"""
+
+        countIndicator = 0
         for elem in tagMap:
-            word = str(elem[0]).lower() #makes the entire word lower case so is easier to work with
-            if (word == "who" and elem[1] == "WP") or word in atrList.keys():
-                attribute = "name"
-            if word in labelList.keys():
-                label = "Outlaw"
-            if label in preLabelList or attribute in preLabelList:
-                preLabel = "Person"
+            if elem[0] == 'number':
+                countIndicator = 1
+        chunkSequence = '''Chunk:{<WRB>+ <JJ>+}'''
+        NPChunker = nltk.RegexpParser(chunkSequence)
+        chunks = NPChunker.parse(tagMap)
+        for n in chunks:
+            if isinstance(n, nltk.tree.Tree):
+                if n.label() == 'Chunk':
+                    howMany = n
+                    countIndicator = 1
+        if countIndicator == 1:
+            return -1
 
-        """If any of the following variables are empty then Return 2"""
-        if attribute == "" or label == "" or preLabel == "":
+        "Creating a of nouns"
+        listOfNouns = []
+        for i in tagMap:
+            if i[1] in nounTags:
+                listOfNouns.append(i[0])
+
+        """Get the nouns that are labels"""
+        nounLabels = []
+        for n in listOfNouns:
+            for l in self.labels:
+                if self.equals_ignore_case(n, l):
+                    nounLabels.append(n)
+
+        labels = []
+
+        """Check to make sure that are more than 2 labels else return -1"""
+
+        labelCount = len(nounLabels)
+
+        if labelCount < 2:
             return -1
         else:
-            output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
-        return output
+            for i in nounLabels:
+                labels.append(i.capitalize())
+
+        """This is section of modified code written by Angie Pinchbek"""
+
+        propertyNouns = []
+        for tm in tagMap:
+            for i in labels:
+                for k in keywords:
+                    if self.equals_ignore_case(tm[0], k) and self.labelProperties[i][0] not in propertyNouns:
+                        propertyNouns.append(self.labelProperties[i][0])
+
+        for n in listOfNouns:
+            for i in labels:
+                for item in self.labelProperties[i.capitalize()]:
+                    if self.equals_ignore_case(n, item) and n not in propertyNouns:
+                        propertyNouns.append(n)
+
+        properties = "n."+propertyNouns[0]
+
+        """NOTE: Code snippet from Angie Pinchbek"""
+        if len(propertyNouns) > 1:
+            for idx, pn in enumerate(propertyNouns):
+                if idx != 0:
+                    properties += ", " "n." + pn
+
+        labelList = ""
+
+        for i in labels:
+            labelList += " :"+i
+
+        """Construct Query"""
+        query = "MATCH (n {} ) RETURN {}".format(labelList, properties)
+
+        return query
+
+    """
+    Method name: listAllof
+    Author: Kevin Feddema & Joseph Pruner
+    Date created: 25/03/2018
+    Date last modified: 26/03/2018
+    Python version: Anaconda 3.6
+    """
 
     def listAllOf(self, tagMap):
         """
@@ -458,14 +539,14 @@ class Tokenize():
                     (bi[1][1] == 'NNS' or bi[1][1] == 'NNP' or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][
                         1] == 'JJ'):
                 propertySubType = bi[1][0]
-        print("property is "+property)
-        print("propertySubType is "+propertySubType)
+        print("property is " + property)
+        print("propertySubType is " + propertySubType)
         if (property.capitalize() or propertySubType.capitalize()) in self.labels:
             print("Query contains label, do not handle")
             return -1
         """If there are no properties in this query, do not handle"""
         if (propertySubType not in [x for v in self.labelProperties.values() for x in v]) and \
-           (property not in [x for v in self.labelProperties.values() for x in v]):
+                (property not in [x for v in self.labelProperties.values() for x in v]):
             print("Nothing is a property")
             return -1
 
@@ -493,41 +574,41 @@ class Tokenize():
         relationship = ""
         relationshipTarget = ""
         property = ""
-        """Determine if there is a relationship in the user's input"""
+        """"Determine if there is a relationship in the user's input"""
+        relationshipIndicator = 0
         for elem in tagMap:
-            if elem[0]+"s" in self.relationships:
+            if elem[0] + "s" in self.relationships:
                 relationship = elem[0]
                 relationshipIndicator = 1
             elif elem[0] in [x for v in self.labelProperties.values() for x in v]:
-                property = "."+elem[0]
+                property = "." + elem[0]
+
         if relationshipIndicator == 0:
             return -1
         print("In a relationship")
 
         query7 = ""
         biGrams = nltk.bigrams(tagMap)
-        #trigrams = nltk.trigrams(tagMap)
+        # trigrams = nltk.trigrams(tagMap)
         """Find the target of the relationship. i.e. parent of "Joe"."""
         for bi in biGrams:
             print(bi)
             if bi[0][0] == relationship and (bi[1][1] == 'NNS' or bi[1][1] == 'NNP'
-               or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][1] == 'JJ'):
-               relationshipTarget = bi[1][0]
+                                             or bi[1][1] == 'NN' or bi[1][1] == 'NNPS' or bi[1][1] == 'JJ'):
+                relationshipTarget = bi[1][0]
             if bi[1][0] == relationship and (bi[0][1] == 'NNS' or bi[0][1] == 'NNP'
-               or bi[0][1] == 'NN' or bi[0][1] == 'NNPS' or bi[0][1] == 'JJ'):
-               relationshipTarget = bi[1][0]
-            #if (bi[0][1] == 'JJR' or bi[0][1] == 'JJS')
+                                             or bi[0][1] == 'NN' or bi[0][1] == 'NNPS' or bi[0][1] == 'JJ'):
+                relationshipTarget = bi[1][0]
+                # if (bi[0][1] == 'JJR' or bi[0][1] == 'JJS')
         print("relationship is " + relationship)
-        print("relationship target is "+relationshipTarget)
+        print("relationship target is " + relationshipTarget)
         print("Property is " + property)
 
         if relationship != "" and relationshipTarget == "":
             query7 += "MATCH () -[:" + relationship.capitalize() + "] -> (n" + property + ") RETURN n"
 
         return query7
-      
-      
-      
+
     def count_with_operators(self, tagMap):
         """
         Author: Angie Pinchbeck
@@ -540,7 +621,7 @@ class Tokenize():
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
         """
-        
+
         """
         This portion of the code is a modified version of code written by Kevin Feddema. It determines whether or not
         there are words that indicate the user is asking for a "count" of some kind. If there is no count indicator, 
@@ -563,7 +644,6 @@ class Tokenize():
         if countIndicator == 0:
             return -1
 
-
         keywords = ["than", "equal", "less", "greater"]
 
 
@@ -577,34 +657,41 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 
-sysin = sys.argv[1:]
-xstring = " ".join(sysin)
-#string = "What are the names of people with parents?"
-#string = "How many outlaws have a bounty of less than $10,000 on them?"
-#string = "Who are the outlaws and what are the bounties on them?"
-#string = "What are the species of each the animals?"
-#string = "How many names start with J?"
-#string = "Who are all the females that are outlaws?"
-string = "What are the names of people with parents from biggest smallest?"
-#string = "what are the names of the outlaws"
-#string = "Who are all the outlaws?"
-#string = "give me a list of all the outlaws"
-#string = "Which animals are also outlaws?"
-#string = "Who are the people that are outlaws?"
+#sysin = sys.argv[1:]
+#string = " ".join(sysin)
+string = "What are the names of the animals"
+# string = "What are the female people"
+# string = "What are the names of people with parents?"
+# string = "How many outlaws have a bounty of less than $10,000 on them?"
+# string = "Who are the outlaws and what are the bounties on them?"
+# string = "What are the species of each the animals?"
+# string = "How many names start with J?"
+# string = "Who are all the females that are outlaws?"
+# string = "What are the names of people with parents from biggest smallest?"
+# string = "what are the names of the outlaws"
+# string = "Who are all the outlaws?"
+# string = "give me a list of all the outlaws"
+# string = "Which animals are also outlaws?"
+# string = "Who are the people that are outlaws?"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
 tagMap = t.wordsTagged
-#print(tagMap)
-#print(t.matchLabelAndProperty(tagMap))
-#print(t.numberStartsWith(tagMap))
-#print(t.listAllOf(tagMap))
-#print(t.returnName(tagMap))
+# print(tagMap)
+# print(t.matchLabelAndProperty(tagMap))
+# print(t.numberStartsWith(tagMap))
+# print(t.listAllOf(tagMap))
+# print (t.labels)
+# print ("LOL")
 
-results = t.runTranslator(tagMap)
-for item in results:
-    print(item)
+# results = t.runTranslator(tagMap)
+# for item in results:
+#     print(item)
 
+print(string)
+
+# print(t.match_label_and_property(tagMap))
+#print(t.return_multiple_labels(tagMap))
 
 """
 string = input()
@@ -617,4 +704,3 @@ while (string != 'e'):
     print("Enter a sentence to tokenize (\"e\" to exit): ")
     string = input()
 """
-
