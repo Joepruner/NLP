@@ -70,6 +70,7 @@ class Tokenize():
     relationshipProperties = {}
 
     def __init__(self, data):
+
         self.initDatabaseDictionaries()
         self.words = word_tokenize(data.lower())
         self.wordsUnFiltered = nltk.pos_tag(self.words)
@@ -324,7 +325,6 @@ class Tokenize():
         query1 = "MATCH (n :" + label + ") RETURN " + prop
         return query1
 
-
     def numberStartsWith(self, tagMap):
         """
         Author: Kevin Feddema
@@ -434,34 +434,51 @@ class Tokenize():
         """
         listAllIndicator = 0
         propertyIndicator = 0
-
+        propList = []
         property = ""
         propertySubType = ""
+        allLabelProperties = []
+        print(tagMap)
 
-        """Determine if there is an 'all' or 'every' indicator in the user's input"""
+        """Do not handle this query if there are relationships or labels in it."""
         for elem in tagMap:
-            if elem[0].lower() == 'every' or elem[0] == 'all':
-                listAllIndicator = 1
-        if listAllIndicator == 0:
-            return -1
-
-        for elem in tagMap:
-            if elem[0] in [x for y in self.labelProperties.values() for x in y]:
-                property = elem[0]
+            if elem[0].lower() in self.labels or elem[0].lower() in self.relationships:
+                return -1
+        for i in range(tagMap.__len__()):
+            if tagMap[i][0] == "named":
+                tagMap.pop([i][0])
+                print(tagMap[i][0])
+                tagMap.insert([i][0], ("name", 'NN'))
+                property = "name"
                 propertyIndicator = 1
+                break
+        if propertyIndicator == 0:
+            for elem in tagMap:
+                if elem[0] in [x for y in self.labelProperties.values() for x in y] and property == "":
+                        property = elem[0]
+                        propertyIndicator = 1
+        print(tagMap)
+
+        # for l in self.labelProperties:
+        #     for p in self.labelProperties.values():
+        #         propList.append(p)
+        # for elem in tagMap:
+        #     for p in propList:
+        #         if self.similarity_score(elem[0], p) > .9:
+        #             property = elem[0]
+        #             propertyIndicator = 1
+
         if propertyIndicator == 0:
             return -1
-
-        if (property.capitalize() or propertySubType.capitalize()) in self.labels:
-            print("Query contains label, do not handle")
-            return -1
-
-        nounTagList = ['NN', 'NNS', 'NNP', 'NNPS']
-        proNounPosessiveList = ['WP', 'WP$']
+        nounTagList = ['NN', 'NNS', 'NNP', 'NNPS', 'CD']
+        proNounVerbPosessiveList = ['WP', 'WP$', 'VBP', 'VBZ']
+        nodeIsList = ['VBP', 'VBZ', 'WP', 'WP$', 'IN']
         allEvery = ["all", "every"]
         query3 = ""
+        nodeIsProperty = False
 
         triGrams = nltk.trigrams(tagMap)
+        biGrams = nltk.bigrams(tagMap)
 
         for tri in triGrams:
             print(tri)
@@ -469,26 +486,34 @@ class Tokenize():
                 propertySubType = tri[2][0]
             elif tri[0][0] in allEvery and tri[1][1] in nounTagList and tri[2][0] == property:
                  propertySubType = tri[1][0]
-
-            """ elif tri[0][1] in nounTagList and tri[1][0] == relationship and tri[2][0] == property:
-                relationshipTarget = tri[0][0]
-            elif tri[0][1] in proNounPosessiveList and tri[1][0] == relationship and tri[2][1] in nounTagList:
-                relationshipTarget = tri[2][0]
-                property = ".name"
-            elif tri[0][1] in proNounPosessiveList and tri[1][1] in nounTagList and tri[2][0] == relationship:
-                relationshipTarget = tri[1][0]
-                property = ".name"
-            elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
-                relatorProperty = True"""
+            elif tri[0][0] == property and tri[1][1] in proNounVerbPosessiveList and tri[2][1] in nounTagList:
+                 propertySubType = tri[2][0]
+        print("property is " + property)
+        print("propertySubType is " + propertySubType)
+        print("nodeIsProperty is " + str(nodeIsProperty))
+        for bi in biGrams:
+            print(bi)
+            if bi[0][0] == property and bi[1][1] in nounTagList:
+                propertySubType = bi[1][0]
+            elif bi[1][1] in nounTagList and bi[0][0] == property:
+                propertySubType = bi[0][0]
+        biGrams = nltk.bigrams(tagMap)
+        for bi in biGrams:
+            print(bi)
+            if bi[0][1] in nodeIsList and bi[1][0] == property and propertySubType == "":
+                nodeIsProperty = True
 
         print("property is "+property)
         print("propertySubType is "+propertySubType)
+        print("nodeIsProperty is "+str(nodeIsProperty))
 
-        if property != "" and propertySubType != "":
-            query3 += "MATCH (n {" + property + " :"
-            query3 += "\'" + propertySubType + "\'" + "}) RETURN n"
-        elif property != "" and propertySubType == "":
-            query3 += "MATCH (n) where exists (n." + property + ") RETURN n"
+        if property != "" and propertySubType != "" and not nodeIsProperty:
+            query3 = "MATCH (n {" + property + " :\'" + propertySubType + "\'" + "}) RETURN n"
+        elif property != "" and propertySubType == "" and not nodeIsProperty:
+            query3 = "MATCH (n) RETURN n."+property
+            """Show me everything that is a species """
+        elif property != "" and propertySubType == "" and nodeIsProperty:
+            query3 = "MATCH (n) where exists (n." + property + ") RETURN n"
         return query3
 
     def relationshipOrder(self, tagMap):
@@ -506,12 +531,23 @@ class Tokenize():
         relationshipTarget = ""
         noRelationshipTarget = False
         relatorProperty = False
+        relatedProperty = False
         property = ""
         nounTagList = ['NN', 'NNS', 'NNP', 'NNPS']
         proNounPosessiveList = ['WP', 'WP$']
         allEvery = ["all", "every"]
+        lemma = nltk.WordNetLemmatizer
+
+        # for i in range(tagMap.__len__()):
+        #     word = tagMap[i][0]
+        #     print(word)
+        #     word = lemma.lemmatize(word)
+        #     #print(tagMap[i][0])
+
         """Determine if there is a relationship in the user's input"""
+
         for elem in tagMap:
+            print(elem[0])
             if elem[0]+"s" in self.relationships:
                 relationship = elem[0]
                 relationshipIndicator = 1
@@ -546,20 +582,18 @@ class Tokenize():
                property = ".name"
             elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
                relatorProperty = True
-
-
-
-
         print("relationship is " + relationship)
         print("relationship target is "+relationshipTarget)
         print("Property is " + property)
+        print("relatorProperty is "+str(relatorProperty))
+        print("relatedProperty is "+str(relatedProperty))
 
         if relationshipTarget == "" and not relatorProperty:
-            query7 += "MATCH (p) -[:" + relationship.capitalize() + "] -> (n." + property + ") RETURN n"
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n." + property + ") RETURN n"
         elif relationshipTarget == "" and relatorProperty:
-            query7 += "MATCH (p) -[:" + relationship.capitalize() + "] -> (n) RETURN p." + property
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n) RETURN p." + property
         elif relationshipTarget != "" and not relatorProperty:
-            query7 = "MATCH (p) -[:" + relationship.capitalize() + "] -> (n{name:\""+relationshipTarget+"\"}) RETURN p."+property
+            query7 = "MATCH (p) -[:" + relationship + "] -> (n{name:\""+relationshipTarget+"\"}) RETURN p."+property
 
         return query7
       
@@ -620,8 +654,8 @@ xstring = " ".join(sysin)
 #string = "What are the species of each the animals?"
 #string = "How many names start with J?"
 #string = "Who are all the females that are outlaws?"
-string = "Show me all the species that are dogs."
-#string = "What are the names of every parent?"
+#string = "Show me everything that is a species."
+string = "What are the names of all parents?"
 #string = "what are the names of the outlaws"
 #string = "Who are all the outlaws?"
 #string = "give me a list of all the outlaws"
