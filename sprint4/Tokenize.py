@@ -657,9 +657,9 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 
-#sysin = sys.argv[1:]
-#string = " ".join(sysin)
-string = "What are the names of the animals"
+sysin = sys.argv[1:]
+string = " ".join(sysin)
+#string = "What are the names of the animals"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
 # string = "How many outlaws have a bounty of less than $10,000 on them?"
@@ -684,11 +684,10 @@ tagMap = t.wordsTagged
 # print (t.labels)
 # print ("LOL")
 
-# results = t.runTranslator(tagMap)
-# for item in results:
-#     print(item)
+results = t.runTranslator(tagMap)
+for item in results:
+    print(item)
 
-print(string)
 
 # print(t.match_label_and_property(tagMap))
 #print(t.return_multiple_labels(tagMap))
