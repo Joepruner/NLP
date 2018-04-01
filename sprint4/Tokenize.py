@@ -747,10 +747,10 @@ When running from console use:
 For testing purposes, a while-loop is included at the bottom (commented out) that will allow for continual input and 
 tokenization until "e" is entered. 
 """
-#string = input()
+# string = input()
 sysin = sys.argv[1:]
 string = " ".join(sysin)
-#string = "What are the names of the animals"
+# string = "What are the names of the animals"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
 # string = "How many outlaws have a bounty of less than $10,000 on them?"
@@ -773,8 +773,8 @@ t = Tokenize(string)
 tagMap = t.wordsTagged
 # print(tagMap)
 # print(t.matchLabelAndProperty(tagMap))
-#print(t.numberStartsWith(tagMap))
-#print(t.numberNullOrNot(tagMap))
+# print(t.numberStartsWith(tagMap))
+# print(t.numberNullOrNot(tagMap))
 # print(t.listAllOf(tagMap))
 # print (t.labels)
 # print ("LOL")
