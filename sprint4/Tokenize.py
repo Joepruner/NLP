@@ -147,6 +147,8 @@ class Tokenize():
             results.append("query3: " + self.listAllOf(tagMap))
         if self.numberStartsWith(tagMap) != -1:
             results.append("query5: " + self.numberStartsWith(tagMap))
+        if self.numberNullOrNot(tagMap) != -1:
+            results.append("query6: " + self.numberNullOrNot(tagMap))
         if self.relationshipOrder(tagMap) != -1:
             results.append("query7: " + self.relationshipOrder(tagMap))
 
@@ -345,8 +347,8 @@ class Tokenize():
         containWords = {"contain", "position"}
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
         # the need to return count and 0 if not
-        letterPosIndicator = 0;  # 1 or 0. 1 if input contains any one of the start words
-        letterIndicator = 0;  # 1 or 0. 1 if input contains any one of the end words
+        letterPosIndicator = 0  # 1 or 0. 1 if input contains any one of the start words
+        letterIndicator = 0  # 1 or 0. 1 if input contains any one of the end words
         attribute = "" #The attribute of the query
         condition = "" #The condition of the query
         value = "" # The value or letter for the query
@@ -361,7 +363,7 @@ class Tokenize():
                     howMany = n
                     countIndicator = 1
 
-        """Determine if all three indicators are present in the user's input and assign conditions and attributes"""
+        """Determine if all three indicators are present in the user's input and assign condition"""
         """
         NOTE:
         The position of the containWords if statement must be positioned before the startWords check and the endWords
@@ -384,13 +386,27 @@ class Tokenize():
             if len(elem[0]) == 1:
                 if elem[0].isalpha() and elem[1] == 'NN':
                     letterIndicator = 1
-                    value = elem[0].capitalize()
-            if elem[1] == 'RB' or elem[1] == 'NNS':
-                attribute = elem[0]
 
         """If all indicators are not found in the question, the question cannot be handled by this method, return -1"""
         if countIndicator == 0 or letterPosIndicator == 0 or letterIndicator == 0:
             return -1
+
+        """Determine NNS similarity to database label properties and assign attribute"""
+        maxLabelProp = ""
+        maxScore = 0
+        for elem in tagMap:
+            if len(elem[0]) == 1:
+                if elem[0].isalpha() and elem[1] == 'NN':
+                    letterIndicator = 1
+                    value = elem[0].capitalize()
+            if elem[1] == 'RB' or elem[1] == 'NNS' or elem[1] == 'NN':
+                for label in self.labelProperties.values():
+                    for labelProp in label:
+                        score = self.similarity_score(labelProp, elem[0])
+                        if score >= maxScore:
+                            maxLabelProp = labelProp
+                            maxScore = score
+        attribute = maxLabelProp
 
         query5 = "MATCH (n) WHERE n." + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n." + attribute + ")"
         return query5
@@ -399,7 +415,7 @@ class Tokenize():
         """
         Author: Kevin Feddema
         Date created: 31/03/2018
-        Date last modified: 31/03/2018
+        Date last modified: 01/04/2018
 
         The following method accepts a tokenized tag map and constructs a query for questions similar to "What
         is the number of animals with a known specie". Much like the numberStartsWith method, the numberNullOrNot
@@ -411,13 +427,16 @@ class Tokenize():
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
         """
-        for elem in tagMap:
-            if elem[0] == 'number':
-                countIndicator = 1
+        query6 = ""  # the final query that is returned after processing
+        nullWords = {"unknown"} # Words indicating an IS NULL condition
+        notNullWords = {"known"} # Words indicating an IS NOT NULL condition
+        countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a count indicator
+        nullIndicator = 0  # 1 or 0. 1 if input contains any one of the null words
+        attribute = ""  # The attribute of the query
+        condition = ""  # The condition of the query
 
-        chunkSequence = '''
-                        Chunk:
-                        {<WRB>+ <JJ>+}'''
+        """Determine if a "How many" count indicator is present"""
+        chunkSequence = '''Chunk:{<WRB>+ <JJ>+}'''
         NPChunker = nltk.RegexpParser(chunkSequence)
         chunks = NPChunker.parse(tagMap)
         for n in chunks:
@@ -426,8 +445,35 @@ class Tokenize():
                     howMany = n
                     countIndicator = 1
 
+        """Determine if the two indicators are present in the user's input and assign condition"""
+        for elem in tagMap:
+            if elem[0] == 'number':
+                countIndicator = 1
+            if elem[0] in nullWords:
+                nullIndicator = 1
+                condition = "IS NULL"
+            if elem[0] in notNullWords:
+                nullIndicator = 1
+                condition = "IS NOT NULL"
 
-        query6 = "MATCH (n) WHERE n.species IS NOT NULL RETURN COUNT (n.name)"
+        """If the two indicators are not found in the question, the question cannot be handled by this method, return -1"""
+        if countIndicator == 0 or nullIndicator == 0:
+            return -1
+
+        """Determine NNS similarity to database label properties and assign attribute"""
+        maxLabelProp = ""
+        maxScore = 0
+        for elem in tagMap:
+            if elem[1] == 'RB' or elem[1] == 'NNS' or elem[1] == 'NN':
+                for label in self.labelProperties.values():
+                    for labelProp in label:
+                        score = self.similarity_score(labelProp, elem[0])
+                        if score >= maxScore:
+                            maxLabelProp = labelProp
+                            maxScore = score
+        attribute = maxLabelProp
+
+        query6 = "MATCH (n) WHERE n." + attribute + " " + condition + " RETURN COUNT (n." + attribute + ")"
         return query6
 
     def return_multiple_labels(self, tagMap):
@@ -702,8 +748,8 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 #string = input()
-#sysin = sys.argv[1:]
-#string = " ".join(sysin)
+sysin = sys.argv[1:]
+string = " ".join(sysin)
 #string = "What are the names of the animals"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
@@ -712,7 +758,8 @@ tokenization until "e" is entered.
 # string = "What are the species of each the animals?"
 # string = "How many names start with J?"
 # string = "How many names have a J in any position"
-string = "How many names contain a J"
+# string = "How many names contain a J"
+# string = "How many animals have an unknown specie"
 # string = "Who are all the females that are outlaws?"
 # string = "What are the names of people with parents from biggest smallest?"
 # string = "what are the names of the outlaws"
@@ -726,17 +773,15 @@ t = Tokenize(string)
 tagMap = t.wordsTagged
 # print(tagMap)
 # print(t.matchLabelAndProperty(tagMap))
-print(t.numberStartsWith(tagMap))
+#print(t.numberStartsWith(tagMap))
 #print(t.numberNullOrNot(tagMap))
 # print(t.listAllOf(tagMap))
 # print (t.labels)
 # print ("LOL")
 
-"""
 results = t.runTranslator(tagMap)
 for item in results:
     print(item)
-"""
 
 # print(t.match_label_and_property(tagMap))
 #print(t.return_multiple_labels(tagMap))
