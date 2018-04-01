@@ -266,29 +266,40 @@ class Tokenize():
     def returnName(self, tagMap):
         """Creating a list of possible labels and attributes
         that may be in the tagMap"""
-        atrList = {"name": "name", "names": "name"}
-        labelList = {"outlaws": "outlaw", "outlaw": "outlaw"}
-        preLabelList = {"outlaw", "name"}
-        label = ""
-        attribute = ""
+        # atrList = {"name": "name", "names": "name"}
+        # labelList = {"outlaws": "outlaw", "outlaw": "outlaw"}
+        # preLabelList = {"outlaw", "name"}
+        label = []
+        attribute = []
         preLabel = ""
 
         """Looping through the tagMap"""
+        # for elem in tagMap:
+        #     word = str(elem[0]).lower() #makes the entire word lower case so is easier to work with
+        #     if (word == "who" and elem[1] == "WP") or word in atrList.keys():
+        #         attribute = "name"
+        #     if word in labelList.keys():
+        #         label = "Outlaw"
+        #     if label in preLabelList or attribute in preLabelList:
+        #         preLabel = "Person"
+
+
+        """Attempt 2 lol"""
         for elem in tagMap:
-            word = str(elem[0]).lower() #makes the entire word lower case so is easier to work with
-            if (word == "who" and elem[1] == "WP") or word in atrList.keys():
-                attribute = "name"
-            if word in labelList.keys():
-                label = "Outlaw"
-            if label in preLabelList or attribute in preLabelList:
-                preLabel = "Person"
+            word = str(elem[0]).lower()
+            for i in range(0, len(self.labels)-1):
+                if word == self.labels[i]:
+                    label.append(self.labels[i])
+                    print (self.labels[i])
+        #print (label)
+
 
         """If any of the following variables are empty then Return 2"""
-        if attribute == "" or label == "" or preLabel == "":
-            return -1
-        else:
-            output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
-        return output
+        # if attribute == "" or label == "" or preLabel == "":
+        #     return -1
+        # else:
+        #     output = "MATCH (n : {} : {} ) RETURN n.{}".format(preLabel, label, attribute)
+        # return output
       
     """
     Method name: listAllof
@@ -339,13 +350,13 @@ For testing purposes, a while-loop is included at the bottom (commented out) tha
 tokenization until "e" is entered. 
 """
 
-sysin = sys.argv[1:]
-string = " ".join(sysin)
+#sysin = sys.argv[1:]
+#string = " ".join(sysin)
 #string = "What are the names of all the people?"
 #string = "How many names start with J?"
 #string = "Show me all the species that are dogs?"
 #string = "what are the names of the outlaws"
-#string = "who are the outlaws"
+string = "who are the Outlaw and Animal"
 
 """ Create a tokenize object on the input string and print the tuple of the scrubbed words and their tags. """
 t = Tokenize(string)
@@ -354,11 +365,12 @@ tagMap = t.wordsTagged
 #print(t.matchLabelAndProperty(tagMap))
 #print(t.numberStartsWith(tagMap))
 #print(t.listAllOf(tagMap))
-#print(t.returnName(tagMap))
+print (t.labels)
+print ("LOL")
 
-results = t.runTranslator(tagMap)
-for item in results:
-    print(item)
+# results = t.runTranslator(tagMap)
+# for item in results:
+#     print(item)
 
 
 """
