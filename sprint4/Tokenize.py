@@ -327,21 +327,90 @@ class Tokenize():
         """
         Author: Kevin Feddema
         Date created: 19/03/2018
-        Date last modified: 25/03/2018
+        Date last modified: 01/04/2018
 
         The following method accepts a tokenized tag map and constructs a query for questions similar to "How many names
-        begin with a J?" or "What is the number of people with a name starting with J?". This two questions are the most
-        common when asking for the number of names that begin with a letter according to out NLP survey results
+        begin with a J?" or "What is the number of people with a name starting with J?". These two questions are the
+        most common when asking for the number of names that begin with a letter according to out NLP survey results.
+        This method will only execute if all the 3 indicators have been given a value of 1, else the method returns -1.
+        The 3 indicators are the countIndicator, the letterIndicator, and the letterPosIndicator.
 
         :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
         :return: A Cypher query as a string if appropriate; else, -1.
         """
 
         query5 = ""  # the final query that is returned after processing
+        startWords = {"start", "starting", "begin", "beginning", "first", "front"} #Words indicating STARTS WITH
+        endWords = {"end", "ending", "last", "back"} #Words indicating ENDS WITH
+        containWords = {"contain", "position"}
         countIndicator = 0  # countIndicator is either 1 or 0. 1 if there is a chunk or part of speach that indicates
         # the need to return count and 0 if not
+        letterPosIndicator = 0;  # 1 or 0. 1 if input contains any one of the start words
+        letterIndicator = 0;  # 1 or 0. 1 if input contains any one of the end words
+        attribute = "" #The attribute of the query
+        condition = "" #The condition of the query
+        value = "" # The value or letter for the query
 
-        """Determine if there is a count indicator in the user's input"""
+        """Determine if a "How many" count indicator is present"""
+        chunkSequence = '''Chunk:{<WRB>+ <JJ>+}'''
+        NPChunker = nltk.RegexpParser(chunkSequence)
+        chunks = NPChunker.parse(tagMap)
+        for n in chunks:
+            if isinstance(n, nltk.tree.Tree):
+                if n.label() == 'Chunk':
+                    howMany = n
+                    countIndicator = 1
+
+        """Determine if all three indicators are present in the user's input and assign conditions and attributes"""
+        """
+        NOTE:
+        The position of the containWords if statement must be positioned before the startWords check and the endWords
+        check because if the user asks "How many names have a J in the start position" the query will still be 
+        returned correctly in that the condition will initially be set to "CONTAINS" because position is a member of
+        containsWords, but the value will be overwritten by "STARTS WITH" after reaching the startWords check.
+        """
+        for elem in tagMap:
+            if elem[0] == 'number':
+                countIndicator = 1
+            if elem[0] in containWords:
+                letterPosIndicator = 1
+                condition = "CONTAINS"
+            if elem[0] in startWords:
+                letterPosIndicator = 1
+                condition = "STARTS WITH"
+            if elem[0] in endWords:
+                letterPosIndicator = 1
+                condition = "ENDS WITH"
+            if len(elem[0]) == 1:
+                if elem[0].isalpha() and elem[1] == 'NN':
+                    letterIndicator = 1
+                    value = elem[0].capitalize()
+            if elem[1] == 'RB' or elem[1] == 'NNS':
+                attribute = elem[0]
+
+        """If all indicators are not found in the question, the question cannot be handled by this method, return -1"""
+        if countIndicator == 0 or letterPosIndicator == 0 or letterIndicator == 0:
+            return -1
+
+        query5 = "MATCH (n) WHERE n." + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n." + attribute + ")"
+        return query5
+
+    def numberNullOrNot(self, tagMap):
+        """
+        Author: Kevin Feddema
+        Date created: 31/03/2018
+        Date last modified: 31/03/2018
+
+        The following method accepts a tokenized tag map and constructs a query for questions similar to "What
+        is the number of animals with a known specie". Much like the numberStartsWith method, the numberNullOrNot
+        determines if the question contains a count indicator and analyzes accordingly. This method does not handle
+        anything more complicated than NULL or NOT NULL questions, for example "What is the number of animals that
+        are dogs" as this would require querying the database for all possible values for species in order to
+        correctly differentiate between a numberStartsWith and a numberNullOrNot question.
+
+        :param tagMap: A list of tuples consisting of words and their Stanford CoreNLP tags.
+        :return: A Cypher query as a string if appropriate; else, -1.
+        """
         for elem in tagMap:
             if elem[0] == 'number':
                 countIndicator = 1
@@ -357,33 +426,9 @@ class Tokenize():
                     howMany = n
                     countIndicator = 1
 
-        """If a countIndicator is not found in the question, the question cannot be handled by this method, return -1"""
-        if countIndicator == 0:
-            return -1
 
-        """Determine the attribute that the user wants the count of. 
-        And determine whether the user wants to know if the attribute contains, starts with, or ends with"""
-        attribute = ""
-        condition = ""
-        # NOTE: there are quite a few assumptions made here
-        for elem in tagMap:
-            if elem[1] == 'RB' or elem[1] == 'NNS':
-                attribute = elem[0]
-            if elem[0] == 'start' or elem[0] == 'starts' or elem[0] == 'begin' or elem[1] == 'begins':
-                condition = 'STARTS WITH'
-            if elem[0] == 'ends':
-                condition = "ENDS WITH"
-            if elem[0] == 'contain' or elem[0] == 'contains':
-                condition == "CONTAINS"
-
-        """Determine the value that the question filters by, ie. J, K, A, N, etc"""
-        value = ""
-        for elem in tagMap:
-            if elem[1] == 'NN':
-                value = elem[0].capitalize()
-
-        query5 = "MATCH (n) WHERE n." + attribute + " " + condition + " \"" + value + "\" " + "RETURN COUNT (n." + attribute + ")"
-        return query5
+        query6 = "MATCH (n) WHERE n.species IS NOT NULL RETURN COUNT (n.name)"
+        return query6
 
     def return_multiple_labels(self, tagMap):
         """
@@ -656,9 +701,9 @@ When running from console use:
 For testing purposes, a while-loop is included at the bottom (commented out) that will allow for continual input and 
 tokenization until "e" is entered. 
 """
-
-sysin = sys.argv[1:]
-string = " ".join(sysin)
+#string = input()
+#sysin = sys.argv[1:]
+#string = " ".join(sysin)
 #string = "What are the names of the animals"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
@@ -666,6 +711,8 @@ string = " ".join(sysin)
 # string = "Who are the outlaws and what are the bounties on them?"
 # string = "What are the species of each the animals?"
 # string = "How many names start with J?"
+# string = "How many names have a J in any position"
+string = "How many names contain a J"
 # string = "Who are all the females that are outlaws?"
 # string = "What are the names of people with parents from biggest smallest?"
 # string = "what are the names of the outlaws"
@@ -679,15 +726,17 @@ t = Tokenize(string)
 tagMap = t.wordsTagged
 # print(tagMap)
 # print(t.matchLabelAndProperty(tagMap))
-# print(t.numberStartsWith(tagMap))
+print(t.numberStartsWith(tagMap))
+#print(t.numberNullOrNot(tagMap))
 # print(t.listAllOf(tagMap))
 # print (t.labels)
 # print ("LOL")
 
+"""
 results = t.runTranslator(tagMap)
 for item in results:
     print(item)
-
+"""
 
 # print(t.match_label_and_property(tagMap))
 #print(t.return_multiple_labels(tagMap))

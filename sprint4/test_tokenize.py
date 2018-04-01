@@ -1,5 +1,5 @@
 import unittest
-from Tokenize import Tokenize
+from sprint4.Tokenize import Tokenize
 
 class TestTokenize(unittest.TestCase):
 
@@ -9,12 +9,17 @@ class TestTokenize(unittest.TestCase):
     query1_4 = "MATCH (n :Outlaw) RETURN n.name, n.bounty"
     query1_5 = "MATCH (n :Outlaw) RETURN n.name, n.bounty, n.size"
 
-    query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
-
     query2_1 = "MATCH (n  :Animal :Outlaw ) RETURN n.name"
     query2_2 = "MATCH (n  :Animal :Outlaw :Person ) RETURN n.name"
     query2_3 = "MATCH (n  :Outlaw :Person :Animal ) RETURN n.name, n.size"
     query2_4 = "MATCH (n  :Person :Outlaw ) RETURN n.size"
+
+    query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
+    query5_2 = "MATCH (n) WHERE n.name ENDS WITH \"J\" RETURN COUNT (n.name)"
+    query5_3 = "MATCH (n) WHERE n.name CONTAINS WITH \"J\" RETURN COUNT (n.name)"
+
+    query6_1 = "MATCH (n) WHERE n.species IS NOT NULL RETURN COUNT (n.name)"
+    query6_2 = "MATCH (n) WHERE n.species IS NULL RETURN COUNT (n.name)"
 
     """
     Test that stopWords from Python's NLTK is working.
@@ -272,6 +277,198 @@ class TestTokenize(unittest.TestCase):
         string = "How many of the names start with a J?"
         t = Tokenize(string)
         self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test5_numberStartsWith(self):
+        string = "How many names begin with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test6_numberStartsWith(self):
+        string = "How many names begin with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test7_numberStartsWith(self):
+        string = "How many names have a J at the front"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test8_numberStartsWith(self):
+        string = "How many names have a J at the beginning"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test9_numberStartsWith(self):
+        string = "How many names have a J as the first letter"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test10_numberStartsWith(self):
+        string = "What is the number of names that start with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test11_numberStartsWith(self):
+        string = "What is the number of names that begin with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test12_numberStartsWith(self):
+        string = "What is the number of names that have a J at the front"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test13_numberStartsWith(self):
+        string = "What is the number of names that have a J at the beginning"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_1, defined above.
+    """
+    def test14_numberStartsWith(self):
+        string = "What is the number of names whose first letter is J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_1)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test15_numberStartsWith(self):
+        string = "How many names end with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test16_numberStartsWith(self):
+        string = "How many names have a J at the end"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test17_numberStartsWith(self):
+        string = "How many names have a J as the last Letter"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test18_numberStartsWith(self):
+        string = "What is the number of names that end with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test19_numberStartsWith(self):
+        string = "What is the number of names that have a J at the end"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_2, defined above.
+    """
+    def test20_numberStartsWith(self):
+        string = "What is the number of names whose last letter is J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_2)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_3, defined above.
+    """
+    def test21_numberStartsWith(self):
+        string = "How many names end with J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_3)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_3, defined above.
+    """
+    def test22_numberStartsWith(self):
+        string = "How many names have a J in any position"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_3)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_3, defined above.
+    """
+    def test23_numberStartsWith(self):
+        string = "What is the number of names that contain a J"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_3)
+
+    """
+    Test for Kevin Feddema's numberStartsWith method for query5_3, defined above.
+    """
+    def test24_numberStartsWith(self):
+        string = "What is the number of names that have a J in any position"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query5_3)
+
+    """
+    Test for Kevin Feddema's numberNullOrNot method for query6_1, defined above.
+    """
+    def test1_numberNullOrNot(self):
+        string = "What is the number of animals with a known specie"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query6_1)
+
+    """
+    Test for Kevin Feddema's numberNullOrNot method for query6_1, defined above.
+    """
+    def test2_numberNullOrNot(self):
+        string = "How many animals have a known specie"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query6_1)
+
+    """
+    Test for Kevin Feddema's numberNullOrNot method for query6_2, defined above.
+    """
+    def test3_numberNullOrNot(self):
+        string = "What is the number of animals with an unknown specie"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query6_2)
+
+    """
+    Test for Kevin Feddema's numberNullOrNot method for query6_2, defined above.
+    """
+    def test3_numberNullOrNot(self):
+        string = "How many animals have an unknown specie"
+        t = Tokenize(string)
+        self.assertEqual(t.numberStartsWith(t.wordsTagged), self.query6_2)
 
     """
     Test for David Osemwegie return_multiple_labels for query2_1, defined above.
