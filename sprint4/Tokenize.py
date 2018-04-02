@@ -62,7 +62,7 @@ class Tokenize():
 
     """
     
-    keptStopWords = ["how", "all", "with", "have", "who", "and", "is", "each", "than"]
+    keptStopWords = ["how", "all", "with", "have", "has", "who", "are", "and", "is", "each", "than"]
     stopWords = set(stopwords.words('english')) - set(keptStopWords)
     labels = []
     relationships = []
@@ -452,6 +452,11 @@ class Tokenize():
                 property = "name"
                 propertyIndicator = 1
                 break
+            if tagMap[i][0] == "list":
+                tagMap.pop([i][0])
+                print(tagMap[i][0])
+                tagMap.insert([i][0], ("list", 'VB'))
+                break
         if propertyIndicator == 0:
             for elem in tagMap:
                 if elem[0] in [x for y in self.labelProperties.values() for x in y] and property == "":
@@ -474,6 +479,7 @@ class Tokenize():
         proNounVerbPosessiveList = ['WP', 'WP$', 'VBP', 'VBZ']
         nodeIsList = ['VBP', 'VBZ', 'WP', 'WP$', 'IN']
         allEvery = ["all", "every"]
+        hasHaveIs = ['has', 'ha', 'have', 'is', 'i']
         query3 = ""
         nodeIsProperty = False
 
@@ -488,20 +494,20 @@ class Tokenize():
                  propertySubType = tri[1][0]
             elif tri[0][0] == property and tri[1][1] in proNounVerbPosessiveList and tri[2][1] in nounTagList:
                  propertySubType = tri[2][0]
-        print("property is " + property)
-        print("propertySubType is " + propertySubType)
-        print("nodeIsProperty is " + str(nodeIsProperty))
         for bi in biGrams:
             print(bi)
             if bi[0][0] == property and bi[1][1] in nounTagList:
                 propertySubType = bi[1][0]
             elif bi[1][1] in nounTagList and bi[0][0] == property:
                 propertySubType = bi[0][0]
-        biGrams = nltk.bigrams(tagMap)
-        for bi in biGrams:
-            print(bi)
-            if bi[0][1] in nodeIsList and bi[1][0] == property and propertySubType == "":
+            elif bi[0][1] not in nounTagList and bi[0][0] not in hasHaveIs and tagMap.__len__() < 5 and bi[1][0] == property:
                 nodeIsProperty = True
+
+        # biGrams = nltk.bigrams(tagMap)
+        # for bi in biGrams:
+        #     print(bi)
+        #     if bi[0][1] in nodeIsList and bi[1][0] == property and propertySubType == "":
+        #         nodeIsProperty = True
 
         print("property is "+property)
         print("propertySubType is "+propertySubType)
@@ -509,10 +515,10 @@ class Tokenize():
 
         if property != "" and propertySubType != "" and not nodeIsProperty:
             query3 = "MATCH (n {" + property + " :\'" + propertySubType + "\'" + "}) RETURN n"
-        elif property != "" and propertySubType == "" and not nodeIsProperty:
+        elif property != "" and propertySubType == "" and nodeIsProperty:
             query3 = "MATCH (n) RETURN n."+property
             """Show me everything that is a species """
-        elif property != "" and propertySubType == "" and nodeIsProperty:
+        elif property != "" and propertySubType == "" and not nodeIsProperty:
             query3 = "MATCH (n) where exists (n." + property + ") RETURN n"
         return query3
 
@@ -535,8 +541,10 @@ class Tokenize():
         property = ""
         nounTagList = ['NN', 'NNS', 'NNP', 'NNPS']
         proNounPosessiveList = ['WP', 'WP$']
+        withHaveList = ['IN', 'VBZ']
+        isAreList = ['VBP']
         allEvery = ["all", "every"]
-        lemma = nltk.WordNetLemmatizer
+        hasHave = ["has", "have", "ha", "with"]
 
         # for i in range(tagMap.__len__()):
         #     word = tagMap[i][0]
@@ -576,24 +584,50 @@ class Tokenize():
                relationshipTarget = tri[0][0]
             elif tri[0][1] in proNounPosessiveList and tri[1][0] == relationship and tri[2][1] in nounTagList:
                relationshipTarget = tri[2][0]
-               property = ".name"
             elif tri[0][1] in proNounPosessiveList and tri[1][1] in nounTagList and tri[2][0] == relationship:
                relationshipTarget = tri[1][0]
-               property = ".name"
             elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
-               relatorProperty = True
+                relatorProperty = True
+            elif tri[0][0] == property and tri[1][0] in allEvery and tri[2][0] == relationship:
+                relatorProperty = True
+
+            if tri[0][1] in nounTagList and (tri[1][1] in hasHave or tri[1][1] in proNounPosessiveList)\
+                    and tri[2][0] == relationship:
+                relatedProperty = True
+            elif tri[0][1] in proNounPosessiveList and tri[1][0] in hasHave and tri[2][0] == relationship:
+                relatedProperty = True
+            elif tri[0][1] in nounTagList and tri[1][0] in hasHave and tri[2][0] == relationship:
+                relatedProperty = True
+            elif tri[0][0] == relationship and tri[1][0] in hasHave and tri[2][1] in proNounPosessiveList:
+                relatedProperty = True
+            elif (tri[0][1] in proNounPosessiveList or tri[0][1] in nounTagList) and \
+                    tri[1][0] == relationship and tri[2][1] in nounTagList:
+                relatedProperty = True
+                print("here")
+
+            if relationshipTarget == "something" or "anything":
+                relationshipTarget = ""
+
         print("relationship is " + relationship)
         print("relationship target is "+relationshipTarget)
         print("Property is " + property)
         print("relatorProperty is "+str(relatorProperty))
         print("relatedProperty is "+str(relatedProperty))
+        relationship += "s"
 
-        if relationshipTarget == "" and not relatorProperty:
-            query7 += "MATCH (p) -[:" + relationship + "] -> (n." + property + ") RETURN n"
+        if relationshipTarget == "" and property != "" and not relatorProperty and not relatedProperty:
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n" + property + ") RETURN n"
         elif relationshipTarget == "" and relatorProperty:
             query7 += "MATCH (p) -[:" + relationship + "] -> (n) RETURN p." + property
-        elif relationshipTarget != "" and not relatorProperty:
-            query7 = "MATCH (p) -[:" + relationship + "] -> (n{name:\""+relationshipTarget+"\"}) RETURN p."+property
+        elif relationshipTarget == "" and relatedProperty and property != "":
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n) RETURN n." + property
+        elif relationshipTarget == "" and relatedProperty and property == "":
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n) RETURN n"
+        elif relationshipTarget == "" and property == "" and not relatedProperty and not relatorProperty:
+            query7 += "MATCH (p) -[:" + relationship + "] -> (n) RETURN p"
+
+        # elif relationshipTarget != "" and not relatorProperty:
+        #     query7 = "MATCH (p) -[:" + relationship + "] -> (n{name:\""+relationshipTarget+"\"}) RETURN p."+property
 
         return query7
       

@@ -22,35 +22,39 @@ class TestTokenize(unittest.TestCase):
     query5_1 = "MATCH (n) WHERE n.name STARTS WITH \"J\" RETURN COUNT (n.name)"
 
     query7_1 = "MATCH (p) -[:parents] -> (n) RETURN n.name"
+    query7_2 = "MATCH (p) -[:likes] -> (n) RETURN n.size"
+    query7_3 = "MATCH (p) -[:parents] -> (n) RETURN n"
+    query7_4 = "MATCH (p) -[:parents] -> (n) RETURN p"
+    query7_5 = "MATCH (p) -[:dislikes] -> (n) RETURN n"
 
     """REMOVE COMMENTS BEFORE PUSHING!!!!!"""
-    # """
-    # Test that stopWords from Python's NLTK is working.
-    # """
-    # def test_stopWords(self):
-    #     string = "from above into myself"
-    #     t = Tokenize(string)
-    #     self.assertEqual(t.wordsTagged, [])
-    #
-    # """
-    # Test that stopWords is working even though the input has capital letters.
-    # """
-    # def test_stopWords_capitalized(self):
-    #     string = "FROM ABOVE INTO MYSELF"
-    #     t = Tokenize(string)
-    #     self.assertEqual(t.wordsTagged, []);
-    #
-    # """
-    # Test that keptStopWords is working
-    # """
-    # def test_keptStopWords(self):
-    #     string = "How do you do"
-    #     t = Tokenize(string)
-    #     self.assertEqual(t.wordsTagged, [('how', 'WRB')]);
-    #
-    # """
-    # Test match_label_and_property with query1_1, defined above.
-    # """
+    """
+    Test that stopWords from Python's NLTK is working.
+    """
+    def test_stopWords(self):
+        string = "from above into myself"
+        t = Tokenize(string)
+        self.assertEqual(t.wordsTagged, [])
+
+    """
+    Test that stopWords is working even though the input has capital letters.
+    """
+    def test_stopWords_capitalized(self):
+        string = "FROM ABOVE INTO MYSELF"
+        t = Tokenize(string)
+        self.assertEqual(t.wordsTagged, []);
+
+    """
+    Test that keptStopWords is working
+    """
+    def test_keptStopWords(self):
+        string = "How do you do"
+        t = Tokenize(string)
+        self.assertEqual(t.wordsTagged, [('how', 'WRB')]);
+
+    """
+    Test match_label_and_property with query1_1, defined above.
+    """
     # def test1_match_label_and_property(self):
     #     string = "What are the names of all the people?"
     #     t = Tokenize(string)
@@ -378,7 +382,7 @@ class TestTokenize(unittest.TestCase):
         self.assertEqual(t.listAllWithProperty(t.wordsTagged), self.query3_7)
 
     def test19_listAllWithProperty(self):
-        string = "Who has a bounty."
+        string = "Who has a bounty?"
         t = Tokenize(string)
         self.assertEqual(t.listAllWithProperty(t.wordsTagged), self.query3_7)
 
@@ -396,6 +400,51 @@ class TestTokenize(unittest.TestCase):
         string = "What are the names of everyone with parents?"
         t = Tokenize(string)
         self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_1)
+
+    def test2_relationshipOrder(self):
+        string = "Show me the names of people who have parents."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_1)
+
+    def test3_relationshipOrder(self):
+        string = "What are the sizes of everyone with that likes someone?"
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_2)
+
+    def test4_relationshipOrder(self):
+        string = "Show me the sizes of people who like anything."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_2)
+
+    def test5_relationshipOrder(self):
+        string = "Who has parents?"
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_3)
+
+    def test6_relationshipOrder(self):
+        string = "Show me everyone that has parents."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_3)
+
+    def test7_relationshipOrder(self):
+        string = "Who are parents?."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_4)
+
+    def test8_relationshipOrder(self):
+        string = "Show me everyone that is a parent."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_4)
+
+    def test9_relationshipOrder(self):
+        string = "Who dislikes something?"
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_5)
+
+    def test10_relationshipOrder(self):
+        string = "Show me everyone that dislikes anything."
+        t = Tokenize(string)
+        self.assertEqual(t.relationshipOrder(t.wordsTagged), self.query7_5)
 
 
 
