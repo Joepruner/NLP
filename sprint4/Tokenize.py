@@ -28,7 +28,7 @@ from inflection import singularize
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
 from nltk.tokenize import word_tokenize
-
+import sys
 
 class Tokenize():
     """
@@ -128,7 +128,10 @@ class Tokenize():
         :param s2: The second string to compare.
         :return: boolean: True if they are the same, False if they are different.
         """
-        return unicodedata.normalize("NFKD", s1.casefold()) == unicodedata.normalize("NFKD", s2.casefold())
+
+        string1 = u"{}".format(s1)
+        string2 = u"{}".format(s2)
+        return unicodedata.normalize('NFKD', string1.lower()) == unicodedata.normalize('NFKD', string2.lower())
 
     def runTranslator(self, tagMap):
         """
@@ -584,7 +587,7 @@ class Tokenize():
                     if self.equals_ignore_case(n, item) and n not in propertyNouns:
                         propertyNouns.append(n)
 
-        properties = "n."+propertyNouns[0]
+        properties = "n." + propertyNouns[0]
 
         """NOTE: Code snippet from Angie Pinchbek"""
         if len(propertyNouns) > 1:
@@ -595,7 +598,7 @@ class Tokenize():
         labelList = ""
 
         for i in labels:
-            labelList += " :"+i
+            labelList += " :" + i
 
         """Construct Query"""
         query = "MATCH (n {} ) RETURN {}".format(labelList, properties)
@@ -838,6 +841,7 @@ tokenization until "e" is entered.
 # string = input()
 sysin = sys.argv[1:]
 string = " ".join(sysin)
+#string = "What are the sizes of the animals and outlaws"
 # string = "What are the names of the animals"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
@@ -872,7 +876,7 @@ for item in results:
     print(item)
 
 # print(t.match_label_and_property(tagMap))
-#print(t.return_multiple_labels(tagMap))
+# print(t.return_multiple_labels(tagMap))
 
 """
 string = input()

@@ -1,4 +1,8 @@
- <!DOCTYPE html>
+<?php
+ini_set('display_errors',1);
+error_reporting(E_ALL);
+?>
+<!DOCTYPE html>
  <html>
      <head>
         <title>NL2CQ - Results</title>
@@ -15,7 +19,7 @@
 
             $question = $_GET["question"];
 
-            $result = shell_exec("python Tokenize.py ". $question);
+            $result = shell_exec("python Tokenize.py ". $question ." 2>&1");
             ?>
             <h1 id="resultHeader">The Cypher Query:</h1>
             <h2 id="output"><?=$result?></h2>
