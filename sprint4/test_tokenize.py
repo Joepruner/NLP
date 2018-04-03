@@ -36,7 +36,6 @@ class TestTokenize(unittest.TestCase):
     query7_4 = "MATCH (p) -[:parents] -> (n) RETURN p"
     query7_5 = "MATCH (p) -[:dislikes] -> (n) RETURN n"
 
-    """REMOVE COMMENTS BEFORE PUSHING!!!!!"""
     """
     Test that stopWords from Python's NLTK is working.
     """
