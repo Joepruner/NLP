@@ -13,7 +13,7 @@ class TestTokenize(unittest.TestCase):
 
     query2_1 = "MATCH (n  :Animal :Outlaw ) RETURN n.name"
     query2_2 = "MATCH (n  :Animal :Outlaw :Person ) RETURN n.name"
-    query2_3 = "MATCH (n  :Outlaw :Person :Animal ) RETURN n.name, n.size"
+    query2_3 = "MATCH (n  :Outlaw :Person ) RETURN n.name, n.size"
     query2_4 = "MATCH (n  :Person :Outlaw ) RETURN n.size"
 
     """

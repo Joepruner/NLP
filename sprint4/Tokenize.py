@@ -26,6 +26,7 @@ from inflection import singularize
 from nltk.corpus import stopwords
 from nltk.corpus import wordnet as wn
 from nltk.tokenize import word_tokenize
+import sys
 
 
 class Tokenize():
@@ -659,7 +660,7 @@ tokenization until "e" is entered.
 
 sysin = sys.argv[1:]
 string = " ".join(sysin)
-#string = "What are the names of the animals"
+#string = "What are the sizes of the animals and outlaws"
 # string = "What are the female people"
 # string = "What are the names of people with parents?"
 # string = "How many outlaws have a bounty of less than $10,000 on them?"
