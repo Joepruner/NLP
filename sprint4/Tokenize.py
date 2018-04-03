@@ -5,7 +5,7 @@ This program tokenizes and assigns Stanford CoreNLP tags to a sentence. Input ca
 File name: Tokenize.py
 Author: Angie Pinchbeck, Joseph Pruner
 Date created: 27/02/2018
-Date last modified: 27/03/2018
+Date last modified: 02/04/2018
 Python version: 3.5
 
 Much of this was based on a tutorial from:
@@ -44,6 +44,7 @@ class Tokenize():
                     Added equalsIgnoreCase() method to compare two strings case-insensitively.
                     Expanded kept stop words: now includes "each".
         30/03/2018  Expanded kept stop words: now includes "than".
+        02/04/2018  Fixed queries 5 and 6 to pass all tests. Add queries 3 and 7. All methods pass all 92 tests. 
 
     Attributes:
         keptStopWords(String[]): A list of words that we don't want to have scrubbed from input, even though
