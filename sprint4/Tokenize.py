@@ -124,7 +124,7 @@ class Tokenize():
         :param s2: The second string to compare.
         :return: boolean: True if they are the same, False if they are different.
         """
-        return unicodedata.normalize("NFKD", s1.casefold()) == unicodedata.normalize("NFKD", s2.casefold())
+        return unicodedata.normalize('NFKD', s1.casefold()) == unicodedata.normalize('NFKD', s2.casefold())
 
     def runTranslator(self, tagMap):
         """
