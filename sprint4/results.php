@@ -13,7 +13,7 @@ error_reporting(E_ALL);
         <header>
             <a id="nl2cqHead" href="index.php">NL2CQ</a>
         </header>
-        <img class="mainLogo" src="res/NL2CQ%20Logo.svg">
+        <img class="mainLogo" src="res/NL2CQ%20Logo.svg" alt="NL2CQ Logo">
         <main>
             <?php
 
